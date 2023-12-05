@@ -7,7 +7,7 @@ const stickers = require('./stickers.js')
 const keyboardOptions = require('./options/option.js')
 const commands = require('./commandsList.js')
 const utils =  require('./utils.js')
-
+const { brotliCompressSync } = require('zlib')
 class BotManager {
     constructor(token, channel, webhookPath, commandsPath) {
         this.bot = new TelegramBot(token, { polling: false })
@@ -15,14 +15,14 @@ class BotManager {
         this.webhookPath = webhookPath
         this.commandsPath = commandsPath
         this.buccilli = undefined
-
+        this.obj = {}
         this.setupWebhook()
         this.setupCommands()
         this.setupListeners()
     }
 
     setupWebhook() {
-        const webhookUrl = `https://e6f7-2001-b07-6463-6f86-989c-3a9b-fde9-3cdb.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://16a2-2001-b07-6463-6f86-989c-3a9b-fde9-3cdb.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -76,7 +76,29 @@ class BotManager {
                 }
             })
     }
+/*
+const jsonDati = [
+  {
+    "user_id": 123456789,
+    "dove": "canale",
+    "duration": "1 month",
+    "link": "http://example.com",
+    "username_id": "@exampleUsername",
+    "start_date": "2023-12-01",
+    "end_date": "2023-12-31"
+  },
+  {
+    "user_id": 987654321,
+    "channel": "@anotherChannel",
+    "duration": "3 months",
+    "link": "http://another-example.com",
+    "username_id": "@anotherUsername",
+    "start_date": "2023-11-15",
+    "end_date": "2024-02-15"
+  }
+];
 
+*/
     handleCallbackQuery(callbackQuery) {
         const response = callbackQuery.data
         const msgId = callbackQuery.message.message_id
@@ -93,7 +115,9 @@ class BotManager {
             
             this.bot.editMessageText(`How long do you want to be sponsored for?`, timeOptions)
                 .then((result) => {
-                    
+                    this.obj['userId'] = callbackQuery.from.id
+                    this.obj['userName'] = callbackQuery.from.username
+                    this.obj['where'] = response
                 }).catch((error) => console.error(error))
         }
         // times are expressed with a space
@@ -102,12 +126,18 @@ class BotManager {
                 chat_id: chatId,
                 message_id: msgId,
                 text: `What is your channel/website name?`
+                
             }
             
             this.bot.editMessageText(`What is your channel/website name?`, nameOptions)
                 .then((result) => {
                     this.buccilli = result.message_id
-                    
+                    const date = new Date();
+                    this.obj['duration'] = response
+                    this.obj['start_Date'] = date.toISOString().split('T')[0]
+                    const date2 = new Date(date)
+                    date2.setDate(date.getDate() + this.convertDays(response))
+                    this.obj['end_Date'] =  date2.toISOString().split('T')[0]
                 }).catch((error) => console.error(error))
         }
     }
@@ -119,28 +149,44 @@ class BotManager {
         if (msgText[0] === '/') return
         
         if (utils.isValidURL(msgText)) {
-            this.bot.deleteMessage(chatId, msgId)
-            this.bot.editMessageText(``, {
+            this.obj['url'] = msgText
+            this.bot.editMessageText(`bro`, {
                 chat_id: chatId,
                 message_id: this.buccilli
             }).then((result) => {
-                
+
             }).catch((error) => console.error(error))
         } 
         else if (msgText[0] === '@') {
-
+            this.obj['url'] = msgText
+           
         } else {
             
-            this.bot.deleteMessage(chatId, msgId)
             this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
                 chat_id: chatId,
-                message_id: this.buccilli
+                message_id: this.buccilli,
             }).then((result) => {
                 
             }).catch((error) => console.error(error))
             
         }
-
+        if (this.obj['url'] !== null && this.obj['url'] !== undefined && this.obj['url'] !==''){
+            utils.writeJSON(this.obj)
+            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`;
+            this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' });
+            
+        }
+        this.bot.deleteMessage(chatId, msgId)
+    }
+    hasAnswered() {
+        for (const key in this.obj) {
+            if (this.obj.hasOwnProperty(key)) {
+                if (this.obj[key] !== null && this.obj[key] !== undefined && this.obj[key] !== '') {
+                   console.log(this.obj[key]) // At least one field is not empty
+                }
+            }
+        }
+        return false; // All fields are empty
     }
 
     isUserSubscribedToChannel(userId) {
@@ -151,6 +197,31 @@ class BotManager {
                 return false
             })
     }
+
+    convertDays(duration) {
+        let daysToAdd = 0;
+
+        switch (duration) {
+            case '7 days':
+                daysToAdd = 7;
+                break;
+            case '1 month':
+                daysToAdd = 30;
+                break;
+            case '3 months':
+                daysToAdd = 3 * 30;
+                break;
+            case '6 months':
+                daysToAdd = 6 * 30;
+                break;
+            case '1 year':
+                daysToAdd = 365;
+                break;
+        }
+
+        return daysToAdd
+    }
+    
 }
 
 module.exports = BotManager

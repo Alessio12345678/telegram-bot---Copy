@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('fs').promises
 
 const isValidURL = url => {
     const pattern = new RegExp(
@@ -12,26 +12,29 @@ const isValidURL = url => {
     return !! pattern.test(url)
 }
 
-const readJSON = () => {
-    return fetch('./data.json')
-        .then((response) => {
-            if (!response.ok) 
-                throw new Error(`Failed to fetch JSON file: ${response.status}`)
-            return response.json()
-        })
-        .catch((error) => console.error(error))
+const readJSON = async () => {
+    try {
+      const data = await fs.readFile('./data.json', 'utf-8');
+      return JSON.parse(data);
+    } catch (error) {
+      console.error('Failed to read JSON file:', error.message);
+      return [];
+    }
+  };
+
+const writeJSON = async (obj) => {
+    try {
+        const cData = await readJSON();
+        cData.push(obj);
+        const jsonString = JSON.stringify(cData, null, 2);
+        await fs.writeFile('./data.json', jsonString, 'utf-8');
+    } catch (error) {
+        console.error('Failed to write JSON file:', error.message);
+    }
 }
 
-const writeJSON = (obj) => {
-    const jsonString = JSON.stringify(obj, null, 2)
-    fs.writeFile('./data.json', jsonString, 'utf-8', error => {
-        if (error)
-            console.error(error)
-    })
-}
-
-const findUserJSON = (userId) => {
-    const json = readJSON()
+const findUserJSON = async (userId) => {
+    const json = await readJSON()
     const userFound = json.find(user => user.id === userId)
     return userFound
 }
