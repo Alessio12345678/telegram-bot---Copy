@@ -25,7 +25,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://5873-2001-b07-6463-6f86-e93e-fe13-a216-fb23.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://4407-79-37-130-129.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -86,9 +86,36 @@ class BotManager {
         const response = callbackQuery.data
         const msgId = callbackQuery.message.message_id
         const chatId = callbackQuery.message.chat.id
+        const userId = callbackQuery.from.id
 
         if (response === 'it' || response === 'eng') {
             this.bot.sendMessage(chatId, response)
+            utils.readJSON('./userPreferences.json')
+    .then((userPreferences) => {
+        let found = false;
+
+        for (let i = 0; i < userPreferences.length; i++) {
+            const userPrefs = userPreferences[i];
+
+            if (userPrefs.hasOwnProperty(userId)) {
+                if (userPrefs[userId] !== response) {
+                    userPrefs[userId] = response;
+                    found = true;
+                }
+                break;
+            }
+        }
+
+        if (!found) {
+            // Se l'utente non è presente, aggiungi una nuova entry
+            userPreferences.push({ [userId]: response });
+        }
+
+        // Ora scrivi il JSON con le informazioni aggiornate
+        utils.writeJSON(userPreferences, './userPreferences.json');
+    })
+            
+            
             return
         }
 
@@ -170,7 +197,7 @@ class BotManager {
         if (this.obj['url'] !== null && this.obj['url'] !== undefined && this.obj['url'] !==''){     
             const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`;
             this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' });
-            utils.writeJSON(this.obj)
+            utils.writeJSON(this.obj, './data.json')
             
         }
         this.bot.deleteMessage(chatId, msgId)
