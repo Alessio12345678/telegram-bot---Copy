@@ -14,12 +14,12 @@ const keyboardOptions = require('../options/option.js')
 
 module.exports = {
     name: 'start',
-    execute: function(bot,msg) {
+    execute: function(bot, msg) {
         const chatId = msg.chat.id
         let welcomeId = undefined
         
 
-        bot.sendMessage(chatId, `Welcome ${msg.from.first_name}!\nTo start, choose an option to sponsor your channel/website or else`, keyboardOptions.initialOption)
+        bot.sendMessage(chatId, `Welcome ${msg.from.first_name}! In order to use our service`, keyboardOptions.initialOption)
             .then((sentMessage) => {
                 welcomeId = sentMessage.message_id
             })

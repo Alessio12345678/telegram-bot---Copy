@@ -1,28 +1,28 @@
 const fs = require('fs').promises
-const validUrl =  require('valid-url')
+const validator =  require('validator')
+
 const isValidURL = url => {
-    if(validUrl.isUri(url)) return true
-    return false
+    return validator.isURL(url)
 }
 
 const readJSON = async () => {
     try {
-      const data = await fs.readFile('./data.json', 'utf-8');
-      return JSON.parse(data);
+      const data = await fs.readFile('./data.json', 'utf-8')
+      return JSON.parse(data)
     } catch (error) {
-      console.error('Failed to read JSON file:', error.message);
-      return [];
+      console.error('Failed to read JSON file:', error.message)
+      return []
     }
-  };
+}
 
 const writeJSON = async (obj) => {
     try {
-        const cData = await readJSON();
-        cData.push(obj);
-        const jsonString = JSON.stringify(cData, null, 2);
-        await fs.writeFile('./data.json', jsonString, 'utf-8');
+        const cData = await readJSON()
+        cData.push(obj)
+        const jsonString = JSON.stringify(cData, null, 2)
+        await fs.writeFile('./data.json', jsonString, 'utf-8')
     } catch (error) {
-        console.error('Failed to write JSON file:', error.message);
+        console.error('Failed to write JSON file:', error.message)
     }
 }
 
