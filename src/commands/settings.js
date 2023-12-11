@@ -1,16 +1,19 @@
+const utils = require('./../utils.js')
+
 module.exports = {
     name: 'settings',
-    execute: function (bot, msg) {
+    execute: async function (bot, msg) {
         const chatId = msg.chat.id
         const msgId = msg.message_id
-        bot.sendMessage(chatId, 'Choose your language:', {
+        const userPreference = await utils.getUserPreferences(msg.from.id)
+        bot.sendMessage(chatId, userPreference.choice_lang, {
             chat_id: chatId,
             message_id: msgId,
             reply_markup: {
                 inline_keyboard: [
                     [
-                        { text: 'Italiano 🇮🇹', callback_data: 'it' },
-                        { text: 'English 🌍', callback_data: 'eng' }
+                        { text: 'Italiano 🇮🇹', callback_data: 'italiano' },
+                        { text: 'English 🌍', callback_data: 'english' }
                     ],
                 ]
             }

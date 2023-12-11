@@ -1,0 +1,21 @@
+{
+    "welcome": "Benvenuto {firstName}! Per utilizzare il nostro servizio scegli tra le seguenti opzioni",
+    "ourstuff": "Qui troverai i nostri adesivi e il nostro canale",
+    "sponsor": "Per iniziare, scegli un'opzione per sponsorizzare il tuo canale/sito web o altro",
+    "time": "Per quanto tempo vuoi essere sponsorizzato?",
+    "name": "Qual è il nome del tuo canale/sito web?",
+    "sponsor_btn": "Sponsorizza 🚀",
+    "ourstuff_btn": "I Nostri Prodotti 📦",
+    "sticker_btn": "•Sticker 🐱•",
+    "channel_btn": "•Canale 📣•",
+    "emoji_btn": "•Emoji Premium 😻 •",
+    "animatedPack_btn": "•Pacchetto Animato 😼•",
+    "stickerPack_btn": "•Pacchetto Adesivi 🐱•",
+    "days_btn7": "7 giorni 📆",
+    "month_btn1": "1 mese 📆",
+    "months_btn3": "3 mesi 📆",
+    "months_btn6": "6 mesi 📆",
+    "year_btn1": "1 anno 📆",
+    "back_btn": "Indietro ↩️",
+    "choice_lang": "Scegli la lingua:"
+}

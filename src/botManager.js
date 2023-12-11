@@ -25,7 +25,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://4407-79-37-130-129.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://2790-79-37-130-129.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -69,10 +69,17 @@ class BotManager {
         this.isUserSubscribedToChannel(userId)
             .then((isSubscribed) => {
                 if (isSubscribed) {
-                    //if (this.buccilli != undefined) this.bot.deleteMessage(chatId, this.buccilli)
+                    utils.findUserJSON(userId, './userPreferences.json')
+                        .then((userPrefence) => {
+                            console.log('userPreference:/n', userPrefence)
+                            if (!userPrefence || userPrefence == undefined) 
+                                utils.writeJSON({
+                                    [userId]: 'english'
+                                },'./userPreferences.json')
+                        })
                     command.execute(this.bot, msg)
-                    this.stateManager.setUserName(userId, msg.from.first_name);
-                    this.stateManager.setData(msg.from.id);// ajilit -> kai
+                    this.stateManager.setUserName(userId, msg.from.first_name)
+                    this.stateManager.setData(userId)
                     this.stateManager.updateCurrentState('initial')
                     this.bot.deleteMessage(chatId, msg.message_id)
                 } else {
@@ -87,42 +94,23 @@ class BotManager {
         const msgId = callbackQuery.message.message_id
         const chatId = callbackQuery.message.chat.id
         const userId = callbackQuery.from.id
+        this.stateManager.setData(callbackQuery.from.id)
 
-        if (response === 'it' || response === 'eng') {
-            this.bot.sendMessage(chatId, response)
-            utils.readJSON('./userPreferences.json')
-    .then((userPreferences) => {
-        let found = false;
-
-        for (let i = 0; i < userPreferences.length; i++) {
-            const userPrefs = userPreferences[i];
-
-            if (userPrefs.hasOwnProperty(userId)) {
-                if (userPrefs[userId] !== response) {
-                    userPrefs[userId] = response;
-                    found = true;
-                }
-                break;
-            }
-        }
-
-        if (!found) {
-            // Se l'utente non è presente, aggiungi una nuova entry
-            userPreferences.push({ [userId]: response });
-        }
-
-        // Ora scrivi il JSON con le informazioni aggiornate
-        utils.writeJSON(userPreferences, './userPreferences.json');
-    })
-            
-            
+        if (response === 'italiano' || response === 'english') {
+            utils.findUserJSON(userId, './userPreferences.json')
+                .then((userPrefence) => {
+                    if (userPrefence !== undefined && userPrefence[userId] !== response) {
+                       
+                        userPrefence[userId] = response
+                        utils.updateJSON(userPrefence, './userPreferences.json')
+                    }
+                })
             return
         }
 
 
-        const currentState = this.stateManager.getCurrentState() // ajilit -> kai
+        const currentState = this.stateManager.getCurrentState()
         
-        this.stateManager.setData(callbackQuery.from.id);// ajilit -> kai
         
         
 
@@ -142,7 +130,7 @@ class BotManager {
             
             
         } else if (currentState === 'time') {
-            const date = new Date();
+            const date = new Date()
             this.obj['duration'] = response
             this.obj['start_Date'] = date.toISOString().split('T')[0]
             const date2 = new Date(date)
@@ -153,7 +141,7 @@ class BotManager {
         
         
         if (response.split("_")[0] === 'back') {
-            this.stateManager.updateCurrentState(response.split("_")[1]) //prende lo state precendete
+            this.stateManager.updateCurrentState(response.split("_")[1])
             
             
         }
@@ -195,23 +183,12 @@ class BotManager {
         }
         
         if (this.obj['url'] !== null && this.obj['url'] !== undefined && this.obj['url'] !==''){     
-            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`;
-            this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' });
+            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`
+            this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' })
             utils.writeJSON(this.obj, './data.json')
             
         }
         this.bot.deleteMessage(chatId, msgId)
-    }
-
-    hasAnswered() {
-        for (const key in this.obj) {
-            if (this.obj.hasOwnProperty(key)) {
-                if (this.obj[key] !== null && this.obj[key] !== undefined && this.obj[key] !== '') {
-                   console.log(this.obj[key]) // At least one field is not empty
-                }
-            }
-        }
-        return false; // All fields are empty
     }
 
     isUserSubscribedToChannel(userId) {
@@ -224,24 +201,24 @@ class BotManager {
     }
 
     convertDays(duration) {
-        let daysToAdd = 0;
+        let daysToAdd = 0
 
         switch (duration) {
             case '7 days':
-                daysToAdd = 7;
-                break;
+                daysToAdd = 7
+                break
             case '1 month':
-                daysToAdd = 30;
-                break;
+                daysToAdd = 30
+                break
             case '3 months':
-                daysToAdd = 3 * 30;
-                break;
+                daysToAdd = 3 * 30
+                break
             case '6 months':
-                daysToAdd = 6 * 30;
-                break;
+                daysToAdd = 6 * 30
+                break
             case '1 year':
-                daysToAdd = 365;
-                break;
+                daysToAdd = 365
+                break
         }
 
         return daysToAdd

@@ -1,7 +1,21 @@
 {
-    "welcome": "Welcome {firstName}! In order to use our service, join our channel.",
-    "ourthings": "Here you will find our stickers and our channel",
+    "welcome": "Welcome {firstName}! In order to use our service choose from the following options",
+    "ourstuff": "Here you will find our stickers and our channel",
     "sponsor": "To start, choose an option to sponsor your channel/website or else",
     "time": "How long do you want to be sponsored for?",
-    "name": "What is your channel/website name?"
+    "name": "What is your channel/website name?",
+    "sponsor_btn": "Sponsor 🚀",
+    "ourstuff_btn": "Our Stuff 📦",
+    "sticker_btn": "•Sticker 🐱•",
+    "channel_btn": "•Channel 📣•",
+    "emoji_btn": "•Emoji Premium 😻•",
+    "animatedPack_btn": "•Animated Pack 😼•",
+    "stickerPack_btn": "•Sticker Pack 🐱•",
+    "days_btn7": "7 days 📆",
+    "month_btn1": "1 month 📆",
+    "months_btn3": "3 months 📆",
+    "months_btn6": "6 months 📆",
+    "year_btn1": "1 year 📆",
+    "back_btn": "Back ↩️",
+    "choice_lang": "Choose your language:"
 }

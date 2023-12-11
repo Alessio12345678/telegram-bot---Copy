@@ -1,41 +1,42 @@
 const keyboardOptions = require('./options/option.js') 
+const utils = require('./utils.js')
 class StateManager {
     constructor() {
         this.userNames = {};
         this.currentState = '' //nome 
         this.data = {}
-        this.setData()
+        
     }
-
-    setData(id) {
-        //const welcomeMessage = (userId) => `Welcome ${this.getUserName(userId)}! In order to use our service`;
+    
+    async setData(id) {
+        const userPreference = await utils.getUserPreferences(id)
         this.data = {
             'initial': {
-                msg: `Welcome ${this.getUserName(id)}! In order to use our service`,
+                msg: userPreference.welcome.replace('{firstName}',this.getUserName(id)),
                 value: { 
                     inline_keyboard: [
                         [
-                            { text: 'Sponsor 🚀', callback_data: 'sponsor'},
-                            { text: 'Our Things 📦', callback_data: 'ourthings'}
+                            { text: userPreference.sponsor_btn, callback_data: 'sponsor'},
+                            { text: userPreference.ourstuff_btn, callback_data: 'ourthings'}
                         ]
                     ]
                 }
             },
             'ourthings' : {
-                msg: 'Here you will find our stickers or our channel!',
-                value: keyboardOptions.ourThings
+                msg: userPreference.ourstuff,
+                value: await keyboardOptions.ourThings(id)
             },
             'sponsor': {
-                msg: 'To start, choose an option to sponsor your channel/website or else',
-                value: keyboardOptions.sponsorOption
+                msg: userPreference.sponsor,
+                value: await keyboardOptions.sponsorOption(id)
             },
             'time': {
-                msg: 'How long do you want to be sponsored for?' ,
-                value: keyboardOptions.timeOption
+                msg: userPreference.time ,
+                value: await keyboardOptions.timeOption(id)
             },
             'name': {
-                msg: 'What is your channel/website name?',
-                value: keyboardOptions.nameOption
+                msg: userPreference.name,
+                value: await keyboardOptions.nameOption(id)
             }
         }
     }

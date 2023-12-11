@@ -1,5 +1,5 @@
 const keyboardOptions = require('../options/option.js')
-
+const utils = require('../utils.js')
 
 
 
@@ -14,12 +14,11 @@ const keyboardOptions = require('../options/option.js')
 
 module.exports = {
     name: 'start',
-    execute: function(bot, msg) {
+    execute: async function(bot, msg) {
         const chatId = msg.chat.id
-        let welcomeId = undefined
-        
-
-        bot.sendMessage(chatId, `Welcome ${msg.from.first_name}! In order to use our service`, keyboardOptions.initialOption)
+        const userPreference = await utils.getUserPreferences(msg.from.id)
+        const keyboard = await keyboardOptions.initialOption(msg.from.id)
+        await bot.sendMessage(chatId, userPreference.welcome.replace('{firstName}',msg.from.first_name), keyboard)
             .then((sentMessage) => {
                 welcomeId = sentMessage.message_id
             })
