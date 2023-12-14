@@ -1,18 +1,18 @@
-const keyboardOptions = require('./options/option.js') 
+const keyboardOptions = require('./options/option.js')
 const utils = require('./utils.js')
 class StateManager {
     constructor() {
-        this.userNames = {};
-        this.currentState = '' //nome 
+        this.userNames = {}
+        this.currentState = ''  
         this.data = {}
-        
     }
-    
+
     async setData(id) {
         const userPreference = await utils.getUserPreferences(id)
+        console.log(this.getUserName(id))
         this.data = {
             'initial': {
-                msg: userPreference.welcome.replace('{firstName}',this.getUserName(id)),
+                msg: userPreference.welcome.replace('{firstName}', this.getUserName(id)),
                 value: { 
                     inline_keyboard: [
                         [
@@ -31,7 +31,7 @@ class StateManager {
                 value: await keyboardOptions.sponsorOption(id)
             },
             'time': {
-                msg: userPreference.time ,
+                msg: userPreference.time,
                 value: await keyboardOptions.timeOption(id)
             },
             'name': {
@@ -58,11 +58,11 @@ class StateManager {
     }
 
     setUserName(userId, userName) {
-        this.userNames[userId] = userName;
+        this.userNames[userId] = userName
     }
 
     getUserName(userId) {
-        return this.userNames[userId];
+        return this.userNames[userId]
     }
 }
 

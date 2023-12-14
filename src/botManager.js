@@ -25,7 +25,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://2790-79-37-130-129.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://0984-2001-b07-6463-6f86-f513-815e-928c-cd59.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -63,30 +63,41 @@ class BotManager {
         this.bot.on('message', (msg) => this.handleMessage(msg))
     }
 
-    handleCommand(msg, command) {
+    async handleCommand(msg, command) {
         const chatId = msg.chat.id
         const userId = msg.from.id
-        this.isUserSubscribedToChannel(userId)
-            .then((isSubscribed) => {
-                if (isSubscribed) {
-                    utils.findUserJSON(userId, './userPreferences.json')
-                        .then((userPrefence) => {
-                            console.log('userPreference:/n', userPrefence)
-                            if (!userPrefence || userPrefence == undefined) 
-                                utils.writeJSON({
-                                    [userId]: 'english'
-                                },'./userPreferences.json')
-                        })
-                    command.execute(this.bot, msg)
-                    this.stateManager.setUserName(userId, msg.from.first_name)
-                    this.stateManager.setData(userId)
-                    this.stateManager.updateCurrentState('initial')
-                    this.bot.deleteMessage(chatId, msg.message_id)
-                } else {
-                    this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`)
-                    this.bot.sendSticker(chatId, stickers['sad'].fileId)
-                }
-            })
+        const isUserSubscribedToChannel = await this.isUserSubscribedToChannel(userId)
+        if (isUserSubscribedToChannel) {
+            const user = await utils.findUserJSON(userId, './userPreferences.json')
+            if (!user || user === undefined) {
+                await utils.writeJSON({
+                    [userId]: 'english'
+                },'./userPreferences.json')
+            }
+            
+            command.execute(this.bot, msg)
+            this.stateManager.setUserName(userId, msg.from.first_name)
+            this.stateManager.setData(userId)
+            this.stateManager.updateCurrentState('initial')
+            this.bot.deleteMessage(chatId, msg.message_id)
+        
+                
+            
+                // .then((userPreference) => {
+                //     if (!userPreference || userPreference === undefined) {
+                        
+                //         utils.writeJSON({
+                //             [userId]: 'english'
+                //         },'./userPreferences.json')
+                //     }
+                // })
+            //if (this.buccilli != undefined) this.bot.deleteMessage(chatId, this.buccilli)
+            
+        } else {
+            this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`)
+            this.bot.sendSticker(chatId, stickers['sad'].fileId)
+        }
+            
     }
     
     handleCallbackQuery(callbackQuery) {
@@ -95,22 +106,21 @@ class BotManager {
         const chatId = callbackQuery.message.chat.id
         const userId = callbackQuery.from.id
         this.stateManager.setData(callbackQuery.from.id)
-
+        const currentState = this.stateManager.getCurrentState() 
         if (response === 'italiano' || response === 'english') {
             utils.findUserJSON(userId, './userPreferences.json')
-                .then((userPrefence) => {
-                    if (userPrefence !== undefined && userPrefence[userId] !== response) {
+                .then((userPreference) => {
+                    if (userPreference !== undefined && userPreference[userId] !== response) {
                        
-                        userPrefence[userId] = response
-                        utils.updateJSON(userPrefence, './userPreferences.json')
+                        userPreference[userId] = response
+                        utils.updateJSON(userPreference, './userPreferences.json')
                     }
                 })
+            
+            
             return
         }
 
-
-        const currentState = this.stateManager.getCurrentState()
-        
         
         
 
@@ -130,7 +140,7 @@ class BotManager {
             
             
         } else if (currentState === 'time') {
-            const date = new Date()
+            const date = new Date();
             this.obj['duration'] = response
             this.obj['start_Date'] = date.toISOString().split('T')[0]
             const date2 = new Date(date)
@@ -141,7 +151,7 @@ class BotManager {
         
         
         if (response.split("_")[0] === 'back') {
-            this.stateManager.updateCurrentState(response.split("_")[1])
+            this.stateManager.updateCurrentState(response.split("_")[1]) //prende lo state precendete
             
             
         }
@@ -183,13 +193,24 @@ class BotManager {
         }
         
         if (this.obj['url'] !== null && this.obj['url'] !== undefined && this.obj['url'] !==''){     
-            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`
-            this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' })
+            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj, null, 2)}</pre>`;
+            this.bot.sendMessage(-1001914875067, formattedMessage, { parse_mode: 'HTML' });
             utils.writeJSON(this.obj, './data.json')
             
         }
         this.bot.deleteMessage(chatId, msgId)
     }
+
+    // hasAnswered() {
+    //     for (const key in this.obj) {
+    //         if (this.obj.hasOwnProperty(key)) {
+    //             if (this.obj[key] !== null && this.obj[key] !== undefined && this.obj[key] !== '') {
+    //                console.log(this.obj[key]) // At least one field is not empty
+    //             }
+    //         }
+    //     }
+    //     return false; // All fields are empty
+    // }
 
     isUserSubscribedToChannel(userId) {
         return this.bot.getChatMember(this.telegramChannel, userId)
@@ -201,24 +222,24 @@ class BotManager {
     }
 
     convertDays(duration) {
-        let daysToAdd = 0
+        let daysToAdd = 0;
 
         switch (duration) {
             case '7 days':
-                daysToAdd = 7
-                break
+                daysToAdd = 7;
+                break;
             case '1 month':
-                daysToAdd = 30
-                break
+                daysToAdd = 30;
+                break;
             case '3 months':
-                daysToAdd = 3 * 30
-                break
+                daysToAdd = 3 * 30;
+                break;
             case '6 months':
-                daysToAdd = 6 * 30
-                break
+                daysToAdd = 6 * 30;
+                break;
             case '1 year':
-                daysToAdd = 365
-                break
+                daysToAdd = 365;
+                break;
         }
 
         return daysToAdd

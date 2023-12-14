@@ -1,12 +1,9 @@
-const utils = require('./../utils.js')
-
 module.exports = {
     name: 'settings',
-    execute: async function (bot, msg) {
+    execute: function (bot, msg) {
         const chatId = msg.chat.id
         const msgId = msg.message_id
-        const userPreference = await utils.getUserPreferences(msg.from.id)
-        bot.sendMessage(chatId, userPreference.choice_lang, {
+        bot.sendMessage(chatId, 'Choose your language:', {
             chat_id: chatId,
             message_id: msgId,
             reply_markup: {

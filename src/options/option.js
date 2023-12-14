@@ -88,4 +88,4 @@ const nameOption = async (id) => {
     }
 }
 
-module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption};
+module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption };
