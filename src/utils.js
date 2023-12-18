@@ -38,6 +38,48 @@ const findUserJSON = async (userId, name) => {
     return userFound
 }
 
+const findUserJSON1 = async (userId, name) => {
+    const json = await readJSON(name)
+    
+    if (json.length == 0) return false;
+
+    const userFound = json.find(userObject => {
+        const userKey = Object.keys(userObject)[0]
+        return (userObject[userKey] == userId)  ? userObject[userKey] : undefined
+    })
+    return userFound
+}
+
+const findIndexDataJson = async (userId, name) => {
+    const json = await readJSON(name)
+    if (json.length == 0) return false
+    const index = json.findIndex(userObject => {
+        const userKey = Object.keys(userObject)[0]
+        return userObject[userKey] == userId
+    })
+
+    if(index == -1) return false
+
+    return index
+}
+// const removeUserJson = async (userId, name) => {
+//     console.log(name)
+//     const json = await readJSON(name)
+    
+//     if (json.length == 0) return false;
+
+//     const index = json.findIndex(userObject => {
+//         const userKey = Object.keys(userObject)[0]
+//         return userObject[userKey] == userId
+//     })
+
+//     if (index === -1) return false
+
+//     json.splice(index, 1)
+//     await writeJSON(name, json)
+// }
+
+
 const updateJSON = async (obj, name) => {
     try {
         const cData = await readJSON(name)
@@ -70,4 +112,4 @@ getUserPreferences = async (id) => {
     }
 }
 
-module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences }
+module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson}

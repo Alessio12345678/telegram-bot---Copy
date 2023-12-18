@@ -15,18 +15,11 @@ module.exports = {
     name: 'start',
     execute: async function(bot, msg) {
         const chatId = msg.chat.id
-        let welcomeId = undefined
         const userPreference = await utils.getUserPreferences(msg.from.id)
         const keyboard = await keyboardOptions.initialOption(msg.from.id)
-        bot.sendMessage(chatId, userPreference.welcome.replace('{firstName}', msg.from.first_name), keyboard)
-            .then((sentMessage) => {
-                welcomeId = sentMessage.message_id
-            })
-            .catch((error) => {
-                console.error(error)
-            })
-        
-        
+        const impaccire = await bot.sendMessage(chatId, userPreference.welcome.replace('{firstName}', msg.from.first_name), keyboard)
+        // console.log(impaccire)
+        return impaccire.message_id
         
     }
 }

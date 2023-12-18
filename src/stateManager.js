@@ -2,7 +2,7 @@ const keyboardOptions = require('./options/option.js')
 const utils = require('./utils.js')
 class StateManager {
     constructor() {
-        this.userNames = {}
+        this.userNames = {};
         this.currentState = ''  
         this.data = {}
     }
