@@ -8,7 +8,7 @@ const keyboardOptions = require('./options/option.js')
 const commands = require('./commandsList.js')
 const utils =  require('./utils.js')
 const StateManager = require('./stateManager.js')
-
+const sponsorHandler = require('./sponsorHandler.js')
 class BotManager {
     constructor(token, channel, webhookPath, commandsPath) {
         this.bot = new TelegramBot(token, { polling: false })
@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://dc14-93-55-3-137.ngrok.io${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://287e-2001-b07-6463-6f86-5ae-5600-284a-183c.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -59,6 +59,8 @@ class BotManager {
         }
 
         this.bot.on('callback_query', (callbackQuery) => this.handleCallbackQuery(callbackQuery))
+        this.bot.on('callback_query', (callbackQuery) => sponsorHandler.handleSponsor(callbackQuery, this.bot))
+        
         this.bot.on('message', (msg) => this.handleMessage(msg))
     }
 
@@ -67,8 +69,12 @@ class BotManager {
         const chatId = msg.chat.id
         const userId = msg.from.id
         const isUserSubscribedToChannel = await this.isUserSubscribedToChannel(userId)
-        const userFound = await utils.findUserJSON1(userId,'./data.json')
-        if (isUserSubscribedToChannel && userFound === undefined || userFound === false) {
+        
+        const index = await utils.findIndexDataJson(userId,'./data.json')
+        const index2 = await utils.findIndexDataJson(userId,'./accepted.json')
+
+        if (isUserSubscribedToChannel && (index === false && index2 === false)) {
+            console.log("Bonassia è entrato")
             const user = await utils.findUserJSON(userId, './userPreferences.json')
             if (!user || user === undefined) {
                 await utils.writeJSON({
@@ -79,7 +85,7 @@ class BotManager {
                 this.stateManager[userId] = new StateManager()
             
             }
-            if(this.buccilli[chatId] != null){ 
+            if (this.buccilli[chatId] != null) { 
                 console.log(this.buccilli[chatId])
                 this.bot.deleteMessage(chatId, this.buccilli[chatId])
             }
@@ -96,24 +102,24 @@ class BotManager {
             
             
         } else {
-            if(userFound != false || userFound != undefined) {
-                const index = await utils.findIndexDataJson(userId,'./data.json')
+            if (index !== false || index2 !== false) {
                 this.bot.sendMessage(chatId, `❗<b>Hai gia una richiesta in sospeso</b>❗`,  {
                     parse_mode: 'HTML',
                     reply_markup: {
                         inline_keyboard: [
-                            (userFound.status == 'accepted') ? 
+                            (index2 !== false) ? 
                             [
-                                { text: `Posizione 🎫: ${index + 1}`, callback_data: "nothing"},
+                                { text: `Posizione 🎫: ${index2 + 1}`, callback_data: "nothing"},
                             ] : 
                             [
 
                             ], 
                             [
-                                { text: `Stato: ${userFound.status} ⏳`, callback_data: "nothing"},
+                                { text: 'Stato: ' + ((index2 !== false) ? 'in coda👥' : 'in attesa⏳'), callback_data: "nothing"},
                                 
-                            ],[
-                                { text: 'Cancella ❌', callback_data: `remove_${userId}` }
+                            ],
+                            [
+                                { text: 'Cancella ❌', callback_data: (index !== false) ? `remove_${userId}` : `cancel_${userId}`}
                             ]
                             
                         ]
@@ -135,7 +141,7 @@ class BotManager {
         const stateManager = this.stateManager[userId]
         if(response === 'nothing') return
         this.buccilli[chatId] = msgId;
-        if(response === `remove_${userId}`) {
+        if(response === `remove_${userId}` ||response.includes('confirm' ) || response.includes('deny') || response === `cancel_${userId}`) {
             // utils.removeUserJson(userId,'./data.json')
             return
             
@@ -217,6 +223,7 @@ class BotManager {
         const msgText = msg.text
         const chatId = msg.from.id
         const msgId = msg.message_id
+        console.log("Bonassiola sempre pieno di problemi : ", msgText)
         if(msgText[0] == '/') return
         
         const stateManager = this.stateManager[chatId]
@@ -252,7 +259,7 @@ class BotManager {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            { text: 'Accetta ✔️', callback_data: `confirm_${chatId}` },
+                            { text: 'Accetta ✅', callback_data: `confirm_${chatId}` },
                             { text: 'Rifiuta ❌', callback_data: `deny_${chatId}` }
                         ],
                         
@@ -260,7 +267,6 @@ class BotManager {
                 }
             });
 
-            this.obj[chatId]['status'] = 'waiting'
             utils.writeJSON(this.obj[chatId], './data.json')
             
         }

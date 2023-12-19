@@ -112,4 +112,21 @@ getUserPreferences = async (id) => {
     }
 }
 
-module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson}
+const removeJSON = async (userId, name) => {
+    try {
+        const indexToRemove = await findIndexDataJson(userId, name)
+
+        if (indexToRemove !== false) {
+            const json = await readJSON(name)
+            json.splice(indexToRemove, 1)
+
+            const jsonString = JSON.stringify(json, null, 2)
+            await fs.writeFile(name, jsonString, 'utf-8')
+        }
+    } catch (error) {
+        console.error("Failed to remove json object: ", error.message)
+    }
+
+}
+
+module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON }
