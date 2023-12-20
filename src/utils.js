@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const validator =  require('validator')
+const moment = require('moment')
 
 const isValidURL = url => {
     return validator.isURL(url)
@@ -29,7 +30,7 @@ const writeJSON = async (obj, name) => {
 const findUserJSON = async (userId, name) => {
     const json = await readJSON(name)
     
-    if (json.length == 0) return false;
+    if (json.length == 0) return false
 
     const userFound = json.find(userObject => {
         const userKey = Object.keys(userObject)[0]
@@ -41,7 +42,7 @@ const findUserJSON = async (userId, name) => {
 const findUserJSON1 = async (userId, name) => {
     const json = await readJSON(name)
     
-    if (json.length == 0) return false;
+    if (json.length == 0) return false
 
     const userFound = json.find(userObject => {
         const userKey = Object.keys(userObject)[0]
@@ -116,26 +117,29 @@ const removeJSON = async (userId, name) => {
 const estimateWait = async (index2) => {
     const json = await readJSON('./accepted.json')
     let sum = []
-    json.forEach(element => {
-        sum.push(element['duration'])
-    });
-    let ans = 0
+    console.log(json.length)
+    for (let i = 0; i < json.length; i++) 
+        if (i !== index2)
+            sum.push(json[i]['duration'])
+    
+    const currentDate = moment()
+    const estimatedDate = moment(currentDate)
     for (let item of sum) {
         const parts = item.split(' ')
         const value = parseInt(parts[0])
         const unit = parts[1]
-        console.log(unit)
-        if (unit.includes('day')) ans += value
-        else if (unit.includes('month')) ans += value * 30
-        else if (unit.includes('year')) ans += value * 365
+        
+        if (unit.includes('day')) currentDate.add(value, 'days')
+        else if (unit.includes('month')) currentDate.add(value, 'months')
+        else if (unit.includes('year')) currentDate.add(value, 'years')
     }
-
-    const days = ans % 30
-    const month = Math.floor((ans % 365) / 30)
-    const years = Math.floor(ans / 365)
-    console.log(days+"   "+month + "   " + years)
-
-    return `0 ore`
+    const duration = moment.duration(currentDate.diff(estimatedDate))
+    const years = duration.years()
+    const months = duration.months()
+    const days = duration.days()
+    return `${years}y${months}m${days}d`
 }
+
+
 
 module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait }
