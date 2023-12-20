@@ -109,7 +109,7 @@ const pendingOption = async (id, index1, index2) => {
             [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
         ]
     }
-    //if (index2 === 0) return activated
+    if (index2 === 0) return activated
     if (index2 !== false) return danger
     return warning
 }

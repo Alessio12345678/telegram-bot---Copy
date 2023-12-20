@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://0dff-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://9f44-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
