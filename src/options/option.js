@@ -88,4 +88,30 @@ const nameOption = async (id) => {
     }
 }
 
-module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption };
+const pendingOption = async (id, index1, index2) => {
+    const userPreference = await utils.getUserPreferences(id)
+    const activated = {
+        inline_keyboard: [
+            [{ text: userPreference.activated, callback_data: 'nothing' }]
+        ]
+    }
+    const danger = {
+        inline_keyboard: [
+            [{ text: userPreference.position + (index2 + 1) , callback_data: 'nothing' }],
+            [{ text: userPreference.estimated_waiting + await utils.estimateWait(index2)  , callback_data: 'nothing' }],
+            [{ text: userPreference.status + ((index2 !== false) ? userPreference.in_queue : userPreference.waiting), callback_data: 'nothing' }],
+            [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
+        ]
+    }
+    const warning = {
+        inline_keyboard: [
+            [{ text: userPreference.status + ((index2 !== false) ? userPreference.in_queue : userPreference.waiting), callback_data: 'nothing' }],
+            [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
+        ]
+    }
+    //if (index2 === 0) return activated
+    if (index2 !== false) return danger
+    return warning
+}
+
+module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption };

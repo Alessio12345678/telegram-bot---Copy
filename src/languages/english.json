@@ -17,5 +17,13 @@
     "months_btn6": "6 months📆",
     "year_btn1": "1 year📆",
     "back_btn": "Back↩️",
-    "choice_lang": "Choose your language:"
+    "choice_lang": "Choose your language:",
+    "pending": "❗<b>A request is already pending</b>❗",
+    "position": "Position 🎫: ",
+    "status": "Status: ",
+    "in_queue": "In Queue 👥",
+    "waiting": "Pending approval ⏳",
+    "estimated_waiting": "Estimated waiting: ",
+    "delete_request" : "Delete request ❌",
+    "activated" : "Activated ✅"
 }

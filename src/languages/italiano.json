@@ -17,5 +17,13 @@
     "months_btn6": "6 mesi📆",
     "year_btn1": "1 anno📆",
     "back_btn": "Indietro↩️",
-    "choice_lang": "Scegli la lingua che preferisci: "
+    "choice_lang": "Scegli la lingua che preferisci: ",
+    "pending": "❗<b>Hai gia una richiesta in sospeso</b>❗",
+    "position": "Posizione 🎫: ",
+    "status": "Stato: ",
+    "in_queue": "In Coda 👥",
+    "waiting": "In attesa di accettazione ⏳",
+    "estimated_waiting": "Tempo di attesa stimato: ",
+    "delete_request": "Cancella richiesta ❌",
+    "activated" : "Attivato ✅"
 }

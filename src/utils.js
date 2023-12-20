@@ -62,22 +62,6 @@ const findIndexDataJson = async (userId, name) => {
 
     return index
 }
-// const removeUserJson = async (userId, name) => {
-//     console.log(name)
-//     const json = await readJSON(name)
-    
-//     if (json.length == 0) return false;
-
-//     const index = json.findIndex(userObject => {
-//         const userKey = Object.keys(userObject)[0]
-//         return userObject[userKey] == userId
-//     })
-
-//     if (index === -1) return false
-
-//     json.splice(index, 1)
-//     await writeJSON(name, json)
-// }
 
 
 const updateJSON = async (obj, name) => {
@@ -129,4 +113,29 @@ const removeJSON = async (userId, name) => {
 
 }
 
-module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON }
+const estimateWait = async (index2) => {
+    const json = await readJSON('./accepted.json')
+    let sum = []
+    json.forEach(element => {
+        sum.push(element['duration'])
+    });
+    let ans = 0
+    for (let item of sum) {
+        const parts = item.split(' ')
+        const value = parseInt(parts[0])
+        const unit = parts[1]
+        console.log(unit)
+        if (unit.includes('day')) ans += value
+        else if (unit.includes('month')) ans += value * 30
+        else if (unit.includes('year')) ans += value * 365
+    }
+
+    const days = ans % 30
+    const month = Math.floor((ans % 365) / 30)
+    const years = Math.floor(ans / 365)
+    console.log(days+"   "+month + "   " + years)
+
+    return `0 ore`
+}
+
+module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait }

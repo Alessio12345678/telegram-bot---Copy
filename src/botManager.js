@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://287e-2001-b07-6463-6f86-5ae-5600-284a-183c.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://7ffd-2001-b07-6463-6f86-7821-3077-5b08-472b.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -103,27 +103,11 @@ class BotManager {
             
         } else {
             if (index !== false || index2 !== false) {
-                this.bot.sendMessage(chatId, `❗<b>Hai gia una richiesta in sospeso</b>❗`,  {
+                const keyboard = await keyboardOptions.pendingOption(userId, index, index2)
+                const userPreference = await utils.getUserPreferences(userId)
+                this.bot.sendMessage(chatId, userPreference.pending,  {
                     parse_mode: 'HTML',
-                    reply_markup: {
-                        inline_keyboard: [
-                            (index2 !== false) ? 
-                            [
-                                { text: `Posizione 🎫: ${index2 + 1}`, callback_data: "nothing"},
-                            ] : 
-                            [
-
-                            ], 
-                            [
-                                { text: 'Stato: ' + ((index2 !== false) ? 'in coda👥' : 'in attesa⏳'), callback_data: "nothing"},
-                                
-                            ],
-                            [
-                                { text: 'Cancella ❌', callback_data: (index !== false) ? `remove_${userId}` : `cancel_${userId}`}
-                            ]
-                            
-                        ]
-                    }
+                    reply_markup: keyboard
                 })
             }else{ 
                 this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`)
