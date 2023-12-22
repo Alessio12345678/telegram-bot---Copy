@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://19bc-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://cad8-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -261,24 +261,22 @@ class BotManager {
         if (!msg.text || msgText[0] == '/') return
 
 
-        
-        if (stateManager.getCurrentState() != 'name') return
-        if (utils.isValidURL(msgText)) {
-            this.obj[chatId]['url'] = msgText
-            this.bot.deleteMessage(chatId, this.buccilli[userId])
-        } 
-        else if (msgText[0] === '@') {
-            this.obj[chatId]['url'] = msgText
-           
-        } else {
-            
-            this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
-                chat_id: chatId,
-                message_id: this.buccilli[userId],
-            }).then((result) => {
-                
-            }).catch((error) => console.error(error))
-            
+        if (stateManager.getCurrentState() === 'description') {
+            console.log(msgText)
+        }
+        else if (stateManager.getCurrentState() === 'name') {
+            if (utils.isValidURL(msgText)) {
+                this.obj[chatId]['url'] = msgText
+                this.bot.deleteMessage(chatId, this.buccilli[userId])
+            } 
+            else if (msgText[0] === '@') {
+                this.obj[chatId]['url'] = msgText
+            } else {
+                this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
+                    chat_id: chatId,
+                    message_id: this.buccilli[userId],
+                })
+            }
         }
 
         
