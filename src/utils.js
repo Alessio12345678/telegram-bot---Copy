@@ -2,7 +2,7 @@ const fs = require('fs').promises
 const validator =  require('validator')
 const moment = require('moment')
 const imageSize = require('image-size')
-const request = require('request')
+const axios = require('axios');
 
 const isValidURL = url => {
     return validator.isURL(url)
@@ -180,32 +180,33 @@ setInterval(acceptedUpdater, 10000)
 
 
 const convertDays = async (duration) => {
-    let daysToAdd = 0;
+    let daysToAdd = 0
 
     switch (duration) {
         case '1 day':
-            daysToAdd = 1;
-            break;
+            daysToAdd = 1
+            break
         case '3 days':
-            daysToAdd = 3;
-            break;
+            daysToAdd = 3
+            break
         case '7 days':
-            daysToAdd = 7;
-            break;
+            daysToAdd = 7
+            break
     }
 
     return daysToAdd
 }
 
-const checkImg = (imageUrl) => {
-    request.get(imageUrl, { encoding: null }, (error, response, body) => {
-        if (!error && response.statusCode === 200) {
-            const dimensions = imageSize(body)
-            const { width, height, type } = dimensions
-            console.log("dimensions: ", dimensions)
-            return (width === 512 && height === 512 && type === 'png')
-        }
-    })
+const checkImg = async (imageUrl) => {
+    try {
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const dimensions = imageSize(response.data);
+        const { width, height, type } = dimensions;
+        console.log("dimensions: ", dimensions);
+        return (width === 512 && height === 512 && type === 'png');
+    } catch (error) {
+        console.error(error)
+    }
+    
 }
-
 module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait, remainingDays, checkImg }

@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://c14a-2001-b07-6463-6f86-99c1-3532-7aa4-37ce.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://19bc-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -220,28 +220,48 @@ class BotManager {
         const userId = msg.from.id
         const msgId = msg.message_id
 
+        const stateManager = this.stateManager[userId]
         //console.log("Bonassiola sempre pieno di problemi: ", msgText)
-
+        
+        
+        
         if (msg.sticker) {
             console.log('it is a sticker')
+            stateManager.updateCurrentState('description')
+            const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+            this.bot.editMessageText(stateMod.msg, {
+                chat_id: chatId,
+                message_id: this.buccilli[userId],
+                reply_markup: stateMod.value
+            })
+            this.bot.deleteMessage(chatId, msgId)
             
-        } else if (msg.photo) {
-            const fileId = msg.photo[0].file_id
+        } else if (msg.document) {
+            const fileId = msg.document.file_id
             const file = await this.bot.getFile(fileId)
             const imageUrl = `https://api.telegram.org/file/bot${this.bot.token}/${file.file_path}`
-            if (utils.checkImg(imageUrl))
+            console.log(imageUrl)
+            if (await utils.checkImg(imageUrl)) {
                 console.log('it is a valid image')
-            else 
-                this.bot.deleteMessage(chatId, msgId)
-
+                stateManager.updateCurrentState('description')
+                const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+                this.bot.editMessageText(stateMod.msg, {
+                    chat_id: chatId,
+                    message_id: this.buccilli[userId],
+                    reply_markup: stateMod.value
+                })
+            }
+            this.bot.deleteMessage(chatId, msgId)
         }
         else if (!msg.text && !msg.sticker) 
             this.bot.deleteMessage(chatId, msgId)
         
+
+        
         if (!msg.text || msgText[0] == '/') return
 
 
-        const stateManager = this.stateManager[userId]
+        
         if (stateManager.getCurrentState() != 'name') return
         if (utils.isValidURL(msgText)) {
             this.obj[chatId]['url'] = msgText
