@@ -1,6 +1,8 @@
 const fs = require('fs').promises
 const validator =  require('validator')
 const moment = require('moment')
+const imageSize = require('image-size')
+const request = require('request')
 
 const isValidURL = url => {
     return validator.isURL(url)
@@ -130,16 +132,80 @@ const estimateWait = async (index2) => {
         const unit = parts[1]
         
         if (unit.includes('day')) currentDate.add(value, 'days')
-        else if (unit.includes('month')) currentDate.add(value, 'months')
-        else if (unit.includes('year')) currentDate.add(value, 'years')
     }
     const duration = moment.duration(currentDate.diff(estimatedDate))
     const years = duration.years()
     const months = duration.months()
     const days = duration.days()
-    return `${years}y${months}m${days}d`
+    return `${years}Y${months}M${days}D`
 }
 
+const remainingDays = async () => {
+    const json = await readJSON('./accepted.json')
+    if(json.length == 0) return
+    const startDate = moment(json[0]['startDate'], "MM/DD/YYYY")
+    const endDate = moment(json[0]['endDate'],  "MM/DD/YYYY")
+    const duration = moment.duration(endDate.diff(startDate))
+    return duration.days()
+    
+}
+
+const dateChecker = (endDate) => {
+    return moment().format('MM/DD/YYYY') === endDate
+}
+
+const acceptedUpdater = async () => {
+    const json = await readJSON('./accepted.json')
+    if (json.length === 0) return
+    //prendiamo il primo utente
 
 
-module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait }
+    //controliamo se ha lo startDate, se no glie lo si mette insieme a endDate
+    if(!json[0]["startDate"]) {
+        json[0]["startDate"] = moment().format('MM/DD/YYYY')
+        json[0]["endDate"] = moment().add(await convertDays(json[0]['duration']), 'days').format('MM/DD/YYYY')
+        const jsonString = JSON.stringify(json, null, 2)
+        await fs.writeFile('./accepted.json', jsonString, 'utf-8')
+        //
+    }
+
+    if(dateChecker(json[0]["endDate"])) {
+        await removeJSON(json[0]["userId"],'./accepted.json')
+    }
+
+    //oppure a dateChecker si passa endDate, e fa il controllo, e finchè non sono uguali non fa nulla
+}
+
+setInterval(acceptedUpdater, 10000)
+
+
+const convertDays = async (duration) => {
+    let daysToAdd = 0;
+
+    switch (duration) {
+        case '1 day':
+            daysToAdd = 1;
+            break;
+        case '3 days':
+            daysToAdd = 3;
+            break;
+        case '7 days':
+            daysToAdd = 7;
+            break;
+    }
+
+    return daysToAdd
+}
+
+const checkImg = (imageUrl) => {
+    request.get(imageUrl, { encoding: null }, (error, response, body) => {
+        if (!error && response.statusCode === 200) {
+            const dimensions = imageSize(body)
+            const { width, height, type } = dimensions
+            console.log("dimensions: ", dimensions)
+            return (width === 512 && height === 512 && type === 'png')
+        }
+    })
+}
+
+module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait, remainingDays, checkImg }

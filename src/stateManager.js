@@ -37,6 +37,14 @@ class StateManager {
             'name': {
                 msg: userPreference.name,
                 value: await keyboardOptions.nameOption(id)
+            },
+            'pic': {
+                msg: userPreference.pic,
+                value: await keyboardOptions.picOption(id)
+            },
+            'description': {
+                msg: userPreference.description,
+                value: await keyboardOptions.descriptionOption(id)
             }
         }
     }

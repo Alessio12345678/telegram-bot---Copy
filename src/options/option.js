@@ -61,15 +61,11 @@ const timeOption = async (id) => {
     return {
         inline_keyboard: [
             [
-                { text: userPreference.days_btn7, callback_data: '7 days'},
-                { text: userPreference.month_btn1, callback_data: '1 month' }
+                { text: userPreference.days_btn1, callback_data: '1 day'},
+                { text: userPreference.days_btn3, callback_data: '3 days' }
             ],
             [
-                { text: userPreference.months_btn3, callback_data: '3 months' },
-                { text: userPreference.months_btn6, callback_data: '6 months' }
-            ],
-            [
-                { text: userPreference.year_btn1, callback_data: '1 year' },
+                { text: userPreference.days_btn7, callback_data: '7 days' },
                 { text: userPreference.back_btn, callback_data: 'back_sponsor' }
             ]
         ]
@@ -92,7 +88,8 @@ const pendingOption = async (id, index1, index2) => {
     const userPreference = await utils.getUserPreferences(id)
     const activated = {
         inline_keyboard: [
-            [{ text: userPreference.activated, callback_data: 'nothing' }]
+            [{ text: userPreference.activated, callback_data: 'nothing' }],
+            [{text:  userPreference.days_left + await utils.remainingDays(), callback_data: 'nothing'}]
         ]
     }
     const danger = {
@@ -114,4 +111,25 @@ const pendingOption = async (id, index1, index2) => {
     return warning
 }
 
-module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption };
+const picOption = async (id) => {
+    const userPreference = await utils.getUserPreferences(id)
+    return {
+        inline_keyboard: [
+            [
+                { text: userPreference.no_pic_btn, callback_data: "no_pic"},
+                { text: userPreference.back_btn, callback_data: "back_time"},
+            ]
+        ]
+    }
+}
+
+const descriptionOption = async (id) => {
+    const userPreference = await utils.getUserPreferences(id)
+    return {
+        inline_keyboard: [
+            [{ text: userPreference.back_btn, callback_data: "back_pic"}]
+        ]
+    }
+}
+
+module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption, picOption, descriptionOption };

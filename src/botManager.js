@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://9f44-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://c14a-2001-b07-6463-6f86-99c1-3532-7aa4-37ce.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -60,7 +60,6 @@ class BotManager {
 
         this.bot.on('callback_query', (callbackQuery) => this.handleCallbackQuery(callbackQuery))
         this.bot.on('callback_query', (callbackQuery) => sponsorHandler.handleSponsor(callbackQuery, this.bot))
-        
         this.bot.on('message', (msg) => this.handleMessage(msg))
     }
 
@@ -105,10 +104,17 @@ class BotManager {
             if (index !== false || index2 !== false) {
                 const keyboard = await keyboardOptions.pendingOption(userId, index, index2)
                 const userPreference = await utils.getUserPreferences(userId)
-                this.bot.sendMessage(chatId, userPreference.pending,  {
-                    parse_mode: 'HTML',
-                    reply_markup: keyboard
-                })
+                const botMsgId = await this.bot.sendMessage(chatId, userPreference.pending,  {
+                                    parse_mode: 'HTML',
+                                    reply_markup: keyboard
+                                })
+                if (this.buccilli[chatId] != null) { 
+                    this.bot.deleteMessage(chatId, this.buccilli[chatId])
+                }
+
+                this.buccilli[chatId] = botMsgId.message_id
+                this.bot.deleteMessage(chatId, msg.message_id)
+
             }else{ 
                 this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`)
                 this.bot.sendSticker(chatId, stickers['sad'].fileId)
@@ -164,7 +170,7 @@ class BotManager {
         }
 
     
-        if(response === 'sponsor') { 
+        if (response === 'sponsor') { 
             stateManager.updateCurrentState("sponsor")
         }
         else if (response === 'ourthings') {
@@ -179,13 +185,18 @@ class BotManager {
             
             
         } else if (currentState === 'time') {
-            const date = new Date();
+            // const date = new Date();
             this.obj[userId]['duration'] = response
-            this.obj[userId]['start_Date'] = date.toISOString().split('T')[0]
-            const date2 = new Date(date)
-            date2.setDate(date.getDate() + this.convertDays(response))
-            this.obj[userId]['end_Date'] =  date2.toISOString().split('T')[0]
-            stateManager.updateCurrentState("name")
+            // this.obj[userId]['start_Date'] = date.toISOString().split('T')[0]
+            // const date2 = new Date(date)
+            // date2.setDate(date.getDate() + this.convertDays(response))
+            // this.obj[userId]['end_Date'] =  date2.toISOString().split('T')[0]
+            stateManager.updateCurrentState("pic")
+        } else if (currentState === 'pic') {
+            if (response === 'no_pic') 
+                stateManager.updateCurrentState("description")
+        } else if (currentState === 'description') {
+            
         }
         
         
@@ -203,23 +214,38 @@ class BotManager {
         })
     }
 
-    handleMessage(msg) {
+    async handleMessage(msg) {
         const msgText = msg.text
-        const chatId = msg.from.id
+        const chatId = msg.chat.id
+        const userId = msg.from.id
         const msgId = msg.message_id
-        console.log("Bonassiola sempre pieno di problemi : ", msgText)
-        if(msgText[0] == '/') return
+
+        //console.log("Bonassiola sempre pieno di problemi: ", msgText)
+
+        if (msg.sticker) {
+            console.log('it is a sticker')
+            
+        } else if (msg.photo) {
+            const fileId = msg.photo[0].file_id
+            const file = await this.bot.getFile(fileId)
+            const imageUrl = `https://api.telegram.org/file/bot${this.bot.token}/${file.file_path}`
+            if (utils.checkImg(imageUrl))
+                console.log('it is a valid image')
+            else 
+                this.bot.deleteMessage(chatId, msgId)
+
+        }
+        else if (!msg.text && !msg.sticker) 
+            this.bot.deleteMessage(chatId, msgId)
         
-        const stateManager = this.stateManager[chatId]
+        if (!msg.text || msgText[0] == '/') return
+
+
+        const stateManager = this.stateManager[userId]
         if (stateManager.getCurrentState() != 'name') return
         if (utils.isValidURL(msgText)) {
             this.obj[chatId]['url'] = msgText
-            this.bot.editMessageText(`Fatto`, {
-                chat_id: chatId,
-                message_id: this.buccilli[chatId]
-            }).then((result) => {
-
-            }).catch((error) => console.error(error))
+            this.bot.deleteMessage(chatId, this.buccilli[userId])
         } 
         else if (msgText[0] === '@') {
             this.obj[chatId]['url'] = msgText
@@ -228,7 +254,7 @@ class BotManager {
             
             this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
                 chat_id: chatId,
-                message_id: this.buccilli[chatId],
+                message_id: this.buccilli[userId],
             }).then((result) => {
                 
             }).catch((error) => console.error(error))
@@ -236,37 +262,32 @@ class BotManager {
         }
 
         
-        if (this.obj[chatId]['url'] !== null && this.obj[chatId]['url'] !== undefined && this.obj[chatId]['url'] !==''){     
-            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[chatId], null, 2)}</pre>`;
-            this.bot.sendMessage(-1001914875067, formattedMessage, {
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            { text: 'Accetta ✅', callback_data: `confirm_${chatId}` },
-                            { text: 'Rifiuta ❌', callback_data: `deny_${chatId}` }
-                        ],
-                        
-                    ]
-                }
-            });
-
-            utils.writeJSON(this.obj[chatId], './data.json')
+        if (this.obj[userId]['url'] !== null && this.obj[userId]['url'] !== undefined && this.obj[userId]['url'] !==''){     
+            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[userId], null, 2)}</pre>`;
+            const groupMessage = await this.bot.sendMessage(-1001914875067, formattedMessage, {
+                                    parse_mode: 'HTML',
+                                    reply_markup: {
+                                        inline_keyboard: [
+                                            [
+                                                { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+                                                { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+                                            ],
+                                            
+                                        ]
+                                    }
+                                });
             
+
+            utils.writeJSON(this.obj[userId], './data.json')
+            const tempObj = {
+                ["userId"] : userId,
+                ["Id"] : groupMessage.message_id
+                
+            }
+            utils.writeJSON(tempObj,'./groupMessageIds.json')
         }
         this.bot.deleteMessage(chatId, msgId)
     }
-
-    // hasAnswered() {
-    //     for (const key in this.obj) {
-    //         if (this.obj.hasOwnProperty(key)) {
-    //             if (this.obj[key] !== null && this.obj[key] !== undefined && this.obj[key] !== '') {
-    //                console.log(this.obj[key]) // At least one field is not empty
-    //             }
-    //         }
-    //     }
-    //     return false; // All fields are empty
-    // }
 
     isUserSubscribedToChannel(userId) {
         return this.bot.getChatMember(this.telegramChannel, userId)
@@ -277,29 +298,6 @@ class BotManager {
             })
     }
 
-    convertDays(duration) {
-        let daysToAdd = 0;
-
-        switch (duration) {
-            case '7 days':
-                daysToAdd = 7;
-                break;
-            case '1 month':
-                daysToAdd = 30;
-                break;
-            case '3 months':
-                daysToAdd = 3 * 30;
-                break;
-            case '6 months':
-                daysToAdd = 6 * 30;
-                break;
-            case '1 year':
-                daysToAdd = 365;
-                break;
-        }
-
-        return daysToAdd
-    }
     
 }
 

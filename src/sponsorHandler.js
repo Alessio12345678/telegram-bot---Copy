@@ -1,5 +1,5 @@
 const utils =  require('./utils.js')
-const handleSponsor = (callbackQuery, bot) => {
+const handleSponsor = async (callbackQuery, bot) => {
     const response = callbackQuery.data
     const msgId = callbackQuery.message.message_id
     const chatId = callbackQuery.message.chat.id
@@ -43,6 +43,7 @@ const handleSponsor = (callbackQuery, bot) => {
     }
 
     if(response === `remove_${userId}`) {
+        await checkRequestValidity(userId, bot)
         utils.removeJSON(userId,'./data.json')
         bot.editMessageReplyMarkup({
             inline_keyboard: [
@@ -54,6 +55,7 @@ const handleSponsor = (callbackQuery, bot) => {
     }
 
     if(response === `cancel_${userId}`) {
+        await checkRequestValidity(userId, bot)
         utils.removeJSON(userId,'./accepted.json')
         bot.editMessageReplyMarkup({
             inline_keyboard: [
@@ -63,8 +65,29 @@ const handleSponsor = (callbackQuery, bot) => {
             ]
         }, {chat_id: chatId, message_id: msgId})
     }
+
+
+
 }
 
+
+const checkRequestValidity = async (userId, bot) => { 
+    const value = await utils.findUserJSON1(userId, './groupMessageIds.json')
+
+    // const json = await utils.readJSON('./groupMessageIds.json')
+    
+
+    bot.editMessageReplyMarkup({
+        inline_keyboard: [
+            [
+                { text: 'Richiesta cancellata ⚠️', callback_data: 'nothing' },
+            ],
+        ]
+    }, {chat_id: -1001914875067, message_id: value['Id']})
+
+    await utils.removeJSON(userId, './groupMessageIds.json')
+
+}
 
 // [
 //     { text: 'Accetta ✔️', callback_data: `confirm_${chatId}` },
