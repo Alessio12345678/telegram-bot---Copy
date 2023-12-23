@@ -27,5 +27,6 @@
     "days_left" : "Giorni rimanenti: ",
     "pic": "Manda l'immagine da sponsorizzare.\nL'immagine deve essere in formato PNG o WEBP con uno sfondo trasparente e deve stare in un quadrato di 512x512 (uno dei lati deve essere 512px e l'altro 512px o meno).\n\nLo sticker dovrebbe usare un contorno bianco e un'ombra, esattamente come in questo esempio in .PSD: StickerExample.psd. Ti consiglio di usare Telegram Web/Desktop per caricare le emoji.",
     "no_pic_btn": "Nessuna foto❌",
-    "description": "Scegli una descrizione per il tuo sponsor: "
+    "description": "Scegli una descrizione per il tuo sponsor: ",
+    "confirmation_msg": "Questa e un anteprima del messaggio. Ti sembra buona?"
 }

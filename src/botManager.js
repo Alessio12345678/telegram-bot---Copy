@@ -24,7 +24,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://cad8-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://0ba3-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -195,9 +195,8 @@ class BotManager {
         } else if (currentState === 'pic') {
             if (response === 'no_pic') 
                 stateManager.updateCurrentState("description")
-        } else if (currentState === 'description') {
             
-        }
+        } 
         
         
         if (response.split("_")[0] === 'back') {
@@ -224,19 +223,7 @@ class BotManager {
         //console.log("Bonassiola sempre pieno di problemi: ", msgText)
         
         
-        
-        if (msg.sticker) {
-            console.log('it is a sticker')
-            stateManager.updateCurrentState('description')
-            const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
-            this.bot.editMessageText(stateMod.msg, {
-                chat_id: chatId,
-                message_id: this.buccilli[userId],
-                reply_markup: stateMod.value
-            })
-            this.bot.deleteMessage(chatId, msgId)
-            
-        } else if (msg.document) {
+        if (msg.document) {
             const fileId = msg.document.file_id
             const file = await this.bot.getFile(fileId)
             const imageUrl = `https://api.telegram.org/file/bot${this.bot.token}/${file.file_path}`
@@ -250,6 +237,7 @@ class BotManager {
                     message_id: this.buccilli[userId],
                     reply_markup: stateMod.value
                 })
+                this.obj[userId]['imageUrl'] = imageUrl
             }
             this.bot.deleteMessage(chatId, msgId)
         }
@@ -262,15 +250,25 @@ class BotManager {
 
 
         if (stateManager.getCurrentState() === 'description') {
-            console.log(msgText)
+            this.obj[userId]['description'] = msgText
+            stateManager.updateCurrentState('name')
+            const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+            this.bot.editMessageText(stateMod.msg, {
+                chat_id: chatId,
+                message_id: this.buccilli[userId],
+                reply_markup: stateMod.value
+            })
+
         }
         else if (stateManager.getCurrentState() === 'name') {
             if (utils.isValidURL(msgText)) {
                 this.obj[chatId]['url'] = msgText
                 this.bot.deleteMessage(chatId, this.buccilli[userId])
+                
             } 
             else if (msgText[0] === '@') {
                 this.obj[chatId]['url'] = msgText
+                
             } else {
                 this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
                     chat_id: chatId,

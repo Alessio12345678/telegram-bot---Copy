@@ -203,7 +203,7 @@ const checkImg = async (imageUrl) => {
         const dimensions = imageSize(response.data);
         const { width, height, type } = dimensions;
         console.log("dimensions: ", dimensions);
-        return (width === 512 && height === 512 && type === 'png');
+        return (((width <= 512 && height === 512) || (width === 512 && height <= 512)) && (type === 'png' || type === 'webp'));
     } catch (error) {
         console.error(error)
     }

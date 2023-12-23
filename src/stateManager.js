@@ -45,6 +45,9 @@ class StateManager {
             'description': {
                 msg: userPreference.description,
                 value: await keyboardOptions.descriptionOption(id)
+            },
+            'confirmation': {
+                
             }
         }
     }
