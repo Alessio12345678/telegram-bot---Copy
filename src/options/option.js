@@ -78,7 +78,7 @@ const nameOption = async (id) => {
     return { 
         inline_keyboard: [
             [
-                { text: userPreference.back_btn, callback_data: 'back_time' }
+                { text: userPreference.back_btn, callback_data: 'back_description' }
             ]
         ]
     }
@@ -132,6 +132,16 @@ const descriptionOption = async (id) => {
     }
 }
 
+const previewConfirmationOption = async (id) => {
+    const userPreference = await utils.getUserPreferences(id)
+    return {
+        inline_keyboard: [
+            [
+                { text: userPreference.confirmation_btn, callback_data: "confirmation"},
+                { text: userPreference.back_btn, callback_data: "back_name"}
+            ]
+        ]
+    }
+}
 
-
-module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption, picOption, descriptionOption };
+module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption, picOption, descriptionOption, previewConfirmationOption };

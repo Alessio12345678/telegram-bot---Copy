@@ -47,7 +47,8 @@ class StateManager {
                 value: await keyboardOptions.descriptionOption(id)
             },
             'confirmation': {
-                
+                msg: 'done',
+                value: null
             }
         }
     }

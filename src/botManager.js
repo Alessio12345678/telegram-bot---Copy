@@ -9,6 +9,7 @@ const commands = require('./commandsList.js')
 const utils =  require('./utils.js')
 const StateManager = require('./stateManager.js')
 const sponsorHandler = require('./sponsorHandler.js')
+const axios = require('axios')
 class BotManager {
     constructor(token, channel, webhookPath, commandsPath) {
         this.bot = new TelegramBot(token, { polling: false })
@@ -24,7 +25,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://0ba3-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://35d6-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -123,12 +124,58 @@ class BotManager {
             
     }
     
-    handleCallbackQuery(callbackQuery) {
+    async handleCallbackQuery(callbackQuery) {
         const response = callbackQuery.data
         const msgId = callbackQuery.message.message_id
         const chatId = callbackQuery.message.chat.id
         const userId = callbackQuery.from.id
         const stateManager = this.stateManager[userId]
+
+        // if (response === 'yes') {
+            
+        //     let groupMessage
+        //     if (this.obj[userId].hasOwnProperty('imageUrl')) {
+        //         const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
+        //         const fileBuffer = Buffer.from(response.data, 'binary');
+        //         groupMessage = await this.bot.sendPhoto(-1001914875067, fileBuffer, {
+        //                             parse_mode: 'HTML',
+        //                             caption: `Descrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
+        //                             reply_markup: {
+        //                                 inline_keyboard: [
+        //                                     [
+        //                                         { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+        //                                         { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+        //                                     ],
+                                            
+        //                                 ]
+        //                             }
+        //                         });
+        //     } else {
+        //         groupMessage = await this.bot.sendMessage(-1001914875067, `<b>Senza foto</b>\nDescrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`, {
+        //             parse_mode: 'HTML',
+        //             reply_markup: {
+        //                 inline_keyboard: [
+        //                     [
+        //                         { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+        //                         { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+        //                     ],
+                            
+        //                 ]
+        //             }
+        //         });
+        //     }
+            
+
+        //     utils.writeJSON(this.obj[userId], './data.json')
+        //     const tempObj = {
+        //         ["userId"] : userId,
+        //         ["Id"] : groupMessage.message_id
+                
+        //     }
+        //     utils.writeJSON(tempObj,'./groupMessageIds.json')
+        // }
+
+
         if(response === 'nothing') return
         this.buccilli[chatId] = msgId;
         if(response === `remove_${userId}` ||response.includes('confirm' ) || response.includes('deny') || response === `cancel_${userId}`) {
@@ -196,7 +243,9 @@ class BotManager {
             if (response === 'no_pic') 
                 stateManager.updateCurrentState("description")
             
-        } 
+        } else if (currentState === 'confirmation') {
+            console.log('daje')
+        }
         
         
         if (response.split("_")[0] === 'back') {
@@ -204,7 +253,7 @@ class BotManager {
             
             
         }
-       
+       console.log('currentState: ', stateManager.getCurrentState())
         const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
         this.bot.editMessageText(stateMod.msg, {
             chat_id: chatId,
@@ -218,7 +267,6 @@ class BotManager {
         const chatId = msg.chat.id
         const userId = msg.from.id
         const msgId = msg.message_id
-
         const stateManager = this.stateManager[userId]
         //console.log("Bonassiola sempre pieno di problemi: ", msgText)
         
@@ -238,6 +286,9 @@ class BotManager {
                     reply_markup: stateMod.value
                 })
                 this.obj[userId]['imageUrl'] = imageUrl
+                // const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+                // const fileBuffer = Buffer.from(response.data, 'binary');
+                // this.bot.sendPhoto(chatId, fileBuffer)
             }
             this.bot.deleteMessage(chatId, msgId)
         }
@@ -264,10 +315,11 @@ class BotManager {
             if (utils.isValidURL(msgText)) {
                 this.obj[chatId]['url'] = msgText
                 this.bot.deleteMessage(chatId, this.buccilli[userId])
-                
+                stateManager.updateCurrentState('confirmation')
             } 
             else if (msgText[0] === '@') {
                 this.obj[chatId]['url'] = msgText
+                stateManager.updateCurrentState('confirmation')
                 
             } else {
                 this.bot.editMessageText(`Make sure you type the url or channel correctly`, {
@@ -276,32 +328,62 @@ class BotManager {
                 })
             }
         }
-
+        if (stateManager.getCurrentState() === 'confirmation') {
+            const userPreference = await utils.getUserPreferences(userId)
+            if (this.obj[userId].hasOwnProperty('imageUrl')) {
+                const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
+                const fileBuffer = Buffer.from(response.data, 'binary');
+                this.bot.sendPhoto(chatId, fileBuffer, {
+                    parse_mode: 'HTML',
+                    caption: `<b>${userPreference.confirmation_msg}</b>` + `\n\n${userPreference.description_msg}${this.obj[userId]['description']}\n${userPreference.url_channel_msg}${this.obj[userId]['url']}`,
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: userPreference.confirmation_btn, callback_data: 'yes' },
+                                { text: userPreference.back_btn, callback_data: 'back_name' }
+                            ]
+                        ]
+                    }
+                })
+            } else {
+                this.bot.sendMessage(chatId, `<b>${userPreference.confirmation_msg}</b>` + '\n\n' +userPreference.no_pic_msg + `\n${userPreference.description_msg}${this.obj[userId]['description']}\n${userPreference.url_channel_msg}${this.obj[userId]['url']}`, {
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: userPreference.confirmation_btn, callback_data: 'yes' },
+                                { text: userPreference.back_btn, callback_data: 'back_name' }
+                            ]
+                        ]
+                    }
+                })
+            }
+        }
         
-        if (this.obj[userId]['url'] !== null && this.obj[userId]['url'] !== undefined && this.obj[userId]['url'] !==''){     
-            const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[userId], null, 2)}</pre>`;
-            const groupMessage = await this.bot.sendMessage(-1001914875067, formattedMessage, {
-                                    parse_mode: 'HTML',
-                                    reply_markup: {
-                                        inline_keyboard: [
-                                            [
-                                                { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
-                                                { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
-                                            ],
+        // if (this.obj[userId]['url'] !== null && this.obj[userId]['url'] !== undefined && this.obj[userId]['url'] !=='') {     
+            // const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[userId], null, 2)}</pre>`;
+            // const groupMessage = await this.bot.sendMessage(-1001914875067, formattedMessage, {
+            //                         parse_mode: 'HTML',
+            //                         reply_markup: {
+            //                             inline_keyboard: [
+            //                                 [
+            //                                     { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+            //                                     { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+            //                                 ],
                                             
-                                        ]
-                                    }
-                                });
+            //                             ]
+            //                         }
+            //                     });
             
 
-            utils.writeJSON(this.obj[userId], './data.json')
-            const tempObj = {
-                ["userId"] : userId,
-                ["Id"] : groupMessage.message_id
+            // utils.writeJSON(this.obj[userId], './data.json')
+            // const tempObj = {
+            //     ["userId"] : userId,
+            //     ["Id"] : groupMessage.message_id
                 
-            }
-            utils.writeJSON(tempObj,'./groupMessageIds.json')
-        }
+            // }
+            // utils.writeJSON(tempObj,'./groupMessageIds.json')
+        // }
         this.bot.deleteMessage(chatId, msgId)
     }
 
