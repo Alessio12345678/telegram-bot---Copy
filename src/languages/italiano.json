@@ -32,5 +32,8 @@
     "confirmation_btn" : "Si😸",
     "description_msg": "Descrizione: ",
     "url_channel_msg": "Url/Canale: ",
-    "no_pic_msg": "Senza Foto"
+    "no_pic_msg": "Senza Foto",
+    "title_invoice": "Sponsorizzazione da StellarCats",
+    "description_invoice": "descrizione",
+    "labeled_price": "Sponsor"
 }

@@ -10,6 +10,8 @@ const utils =  require('./utils.js')
 const StateManager = require('./stateManager.js')
 const sponsorHandler = require('./sponsorHandler.js')
 const axios = require('axios')
+const stripeEvents = require('./stripeEvents.js')
+
 class BotManager {
     constructor(token, channel, webhookPath, commandsPath) {
         this.bot = new TelegramBot(token, { polling: false })
@@ -25,7 +27,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://35d6-79-26-213-166.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://38e8-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -62,6 +64,8 @@ class BotManager {
         this.bot.on('callback_query', (callbackQuery) => this.handleCallbackQuery(callbackQuery))
         this.bot.on('callback_query', (callbackQuery) => sponsorHandler.handleSponsor(callbackQuery, this.bot))
         this.bot.on('message', (msg) => this.handleMessage(msg))
+        this.bot.on('pre_checkout_query', (pre_checkout_query) => stripeEvents.handlePreCheckoutQuery(pre_checkout_query, this.bot))
+        this.bot.on('successful_payment', (msg) => stripeEvents.handleSuccessfulPayment(msg))
     }
 
 
@@ -102,6 +106,21 @@ class BotManager {
             
             
         } else {
+            const utente = await utils.findUserJSON1(userId, './accepted.json')
+            if (utente['payed'] === undefined && index2 === 0) {
+                const userPreference = await utils.getUserPreferences(userId)
+                this.bot.sendInvoice(
+                    chatId, 
+                    userPreference.title_invoice, 
+                    userPreference.description_invoice,
+                    'payload', 
+                    process.env.STRIPE_TEST, 
+                    'EUR', 
+                    [
+                        { label: userPreference.labeled_price, amount: 100 }
+                    ]
+                )
+            }
             if (index !== false || index2 !== false) {
                 const keyboard = await keyboardOptions.pendingOption(userId, index, index2)
                 const userPreference = await utils.getUserPreferences(userId)
@@ -117,7 +136,7 @@ class BotManager {
                 this.bot.deleteMessage(chatId, msg.message_id)
 
             }else{ 
-                this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`)
+                this.bot.sendMessage(chatId, `In order to use this bot, join our channel ${this.telegramChannel}.`, { parseMode: 'Markdown' })
                 this.bot.sendSticker(chatId, stickers['sad'].fileId)
             }
         }
@@ -131,49 +150,49 @@ class BotManager {
         const userId = callbackQuery.from.id
         const stateManager = this.stateManager[userId]
 
-        // if (response === 'yes') {
+        if (response === 'yes') {
             
-        //     let groupMessage
-        //     if (this.obj[userId].hasOwnProperty('imageUrl')) {
-        //         const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
-        //         const fileBuffer = Buffer.from(response.data, 'binary');
-        //         groupMessage = await this.bot.sendPhoto(-1001914875067, fileBuffer, {
-        //                             parse_mode: 'HTML',
-        //                             caption: `Descrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
-        //                             reply_markup: {
-        //                                 inline_keyboard: [
-        //                                     [
-        //                                         { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
-        //                                         { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
-        //                                     ],
+            let groupMessage
+            if (this.obj[userId].hasOwnProperty('imageUrl')) {
+                const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
+                const fileBuffer = Buffer.from(response.data, 'binary');
+                groupMessage = await this.bot.sendPhoto(-1001914875067, fileBuffer, {
+                                    parse_mode: 'HTML',
+                                    caption: `Descrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
+                                    reply_markup: {
+                                        inline_keyboard: [
+                                            [
+                                                { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+                                                { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+                                            ],
                                             
-        //                                 ]
-        //                             }
-        //                         });
-        //     } else {
-        //         groupMessage = await this.bot.sendMessage(-1001914875067, `<b>Senza foto</b>\nDescrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`, {
-        //             parse_mode: 'HTML',
-        //             reply_markup: {
-        //                 inline_keyboard: [
-        //                     [
-        //                         { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
-        //                         { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
-        //                     ],
+                                        ]
+                                    }
+                                });
+            } else {
+                groupMessage = await this.bot.sendMessage(-1001914875067, `<b>Senza foto</b>\nDescrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`, {
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+                                { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+                            ],
                             
-        //                 ]
-        //             }
-        //         });
-        //     }
+                        ]
+                    }
+                });
+            }
             
 
-        //     utils.writeJSON(this.obj[userId], './data.json')
-        //     const tempObj = {
-        //         ["userId"] : userId,
-        //         ["Id"] : groupMessage.message_id
+            utils.writeJSON(this.obj[userId], './data.json')
+            const tempObj = {
+                ["userId"] : userId,
+                ["Id"] : groupMessage.message_id
                 
-        //     }
-        //     utils.writeJSON(tempObj,'./groupMessageIds.json')
-        // }
+            }
+            utils.writeJSON(tempObj,'./groupMessageIds.json')
+        }
 
 
         if(response === 'nothing') return
@@ -194,7 +213,7 @@ class BotManager {
                        
                         userPreference[userId] = response
                         utils.updateJSON(userPreference, './userPreferences.json').then(() => {
-                            utils.getUserPreferences(userId).then((userPreference) =>{
+                            utils.getUserPreferences(userId).then((userPreference) => {
                                                 this.bot.editMessageText(userPreference.choice_lang, {
                                                     chat_id: chatId,
                                                     message_id: msgId,
@@ -250,16 +269,41 @@ class BotManager {
         
         if (response.split("_")[0] === 'back') {
             stateManager.updateCurrentState(response.split("_")[1]) //prende lo state precendete
-            
-            
+            // if (response.split("_")[1] === 'name') {
+            //     const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+            //     this.bot.editMessageMedia(stateMod.msg, {
+            //         chat_id: chatId,
+            //         message_id: msgId,
+            //         reply_markup: stateMod.value
+            //     })
+            // }
+            // if (response.split("_")[1] === 'name' && this.obj[userId]['imageUrl']) {
+            //     const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+            //     this.bot.editMessageMedia(stateMod.msg, {
+            //         chat_id: chatId,
+            //         message_id: msgId,
+            //         reply_markup: stateMod.value
+            //     })
+            //     return
+            // }
         }
-       console.log('currentState: ', stateManager.getCurrentState())
+        console.log('currentState: ', stateManager.getCurrentState())
         const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
         this.bot.editMessageText(stateMod.msg, {
             chat_id: chatId,
             message_id: msgId,
             reply_markup: stateMod.value
+        }).catch(async (error) => {
+            console.log('SONO ENTRATO')
+            
+            this.bot.deleteMessage(chatId, msgId)
+            const { message_id } = await this.bot.sendMessage(chatId, stateMod.msg, {
+                                    reply_markup: stateMod.value
+                                })
+            
+            this.buccilli[userId] = message_id
         })
+        
     }
 
     async handleMessage(msg) {
@@ -299,7 +343,7 @@ class BotManager {
         
         if (!msg.text || msgText[0] == '/') return
 
-
+        console.log('currentState: ', stateManager.getCurrentState())
         if (stateManager.getCurrentState() === 'description') {
             this.obj[userId]['description'] = msgText
             stateManager.updateCurrentState('name')
@@ -361,34 +405,34 @@ class BotManager {
         }
         
         // if (this.obj[userId]['url'] !== null && this.obj[userId]['url'] !== undefined && this.obj[userId]['url'] !=='') {     
-            // const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[userId], null, 2)}</pre>`;
-            // const groupMessage = await this.bot.sendMessage(-1001914875067, formattedMessage, {
-            //                         parse_mode: 'HTML',
-            //                         reply_markup: {
-            //                             inline_keyboard: [
-            //                                 [
-            //                                     { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
-            //                                     { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
-            //                                 ],
+        //     const formattedMessage = `<b>Informazioni:</b>\n<pre>${JSON.stringify(this.obj[userId], null, 2)}</pre>`;
+        //     const groupMessage = await this.bot.sendMessage(-1001914875067, formattedMessage, {
+        //                             parse_mode: 'HTML',
+        //                             reply_markup: {
+        //                                 inline_keyboard: [
+        //                                     [
+        //                                         { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+        //                                         { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+        //                                     ],
                                             
-            //                             ]
-            //                         }
-            //                     });
+        //                                 ]
+        //                             }
+        //                         });
             
 
-            // utils.writeJSON(this.obj[userId], './data.json')
-            // const tempObj = {
-            //     ["userId"] : userId,
-            //     ["Id"] : groupMessage.message_id
+        //     utils.writeJSON(this.obj[userId], './data.json')
+        //     const tempObj = {
+        //         ["userId"] : userId,
+        //         ["Id"] : groupMessage.message_id
                 
-            // }
-            // utils.writeJSON(tempObj,'./groupMessageIds.json')
+        //     }
+        //     utils.writeJSON(tempObj,'./groupMessageIds.json')
         // }
         this.bot.deleteMessage(chatId, msgId)
     }
 
     isUserSubscribedToChannel(userId) {
-        return this.bot.getChatMember(this.telegramChannel, userId)
+        return this.bot.getChatMember('@'+this.telegramChannel.split('/')[3], userId)
             .then((chatMember) => chatMember.status === 'member' || chatMember.status === 'administrator' || chatMember.status === 'creator')
             .catch((error) => {
                 console.error('Error checking channel subscription:', error.message)

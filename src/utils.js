@@ -142,7 +142,7 @@ const estimateWait = async (index2) => {
 
 const remainingDays = async () => {
     const json = await readJSON('./accepted.json')
-    if(json.length == 0) return
+    if (json.length == 0) return
     const startDate = moment(json[0]['startDate'], "MM/DD/YYYY")
     const endDate = moment(json[0]['endDate'],  "MM/DD/YYYY")
     const duration = moment.duration(endDate.diff(startDate))
@@ -176,7 +176,7 @@ const acceptedUpdater = async () => {
     //oppure a dateChecker si passa endDate, e fa il controllo, e finchè non sono uguali non fa nulla
 }
 
-setInterval(acceptedUpdater, 10000)
+setInterval(acceptedUpdater, 1000)
 
 
 const convertDays = async (duration) => {
