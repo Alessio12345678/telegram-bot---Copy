@@ -21,13 +21,12 @@ class BotManager {
         this.buccilli = {}
         this.obj = {}
         this.stateManager = {}
-
         this.setupWebhook()
         this.setupCommands()
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://872e-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://7b24-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -446,6 +445,10 @@ class BotManager {
     async getChatMemberCount() {
        return await this.bot.getChatMemberCount(-1001437370667)
     }
+
+    getInstance() {
+        return this
+    }
 }
 
-module.exports = BotManager
+module.exports = BotManager 

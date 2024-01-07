@@ -4,6 +4,8 @@ const moment = require('moment')
 const imageSize = require('image-size')
 const axios = require('axios');
 
+
+
 const isValidURL = url => {
     return validator.isURL(url)
 }
@@ -159,18 +161,26 @@ const acceptedUpdater = async () => {
     if (json.length === 0) return
     //prendiamo il primo utente
 
+    
 
+    const result = await findUserJSON1(json[0]['userId'], './groupMessageIds.json')
+    if (result !== undefined) {
+        
+    }
     //controliamo se ha lo startDate, se no glie lo si mette insieme a endDate
     if(!json[0]["startDate"]) {
         json[0]["startDate"] = moment().format('MM/DD/YYYY')
         json[0]["endDate"] = moment().add(await convertDays(json[0]['duration']), 'days').format('MM/DD/YYYY')
         const jsonString = JSON.stringify(json, null, 2)
         await fs.writeFile('./accepted.json', jsonString, 'utf-8')
-        //
+        setBot().pinChatMessage(-1001914875067, result['Id'], { disable_notification: true })
+        .catch()
     }
+
 
     if(dateChecker(json[0]["endDate"])) {
         await removeJSON(json[0]["userId"],'./accepted.json')
+        setBot().unpinAllChatMessages(-1001914875067).catch()
     }
 
     //oppure a dateChecker si passa endDate, e fa il controllo, e finchè non sono uguali non fa nulla
@@ -208,5 +218,10 @@ const checkImg = async (imageUrl) => {
         console.error(error)
     }
     
+}
+
+const setBot = () => {
+    const { botManager } = require('./index.js')
+    return botManager.bot
 }
 module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait, remainingDays, checkImg }
