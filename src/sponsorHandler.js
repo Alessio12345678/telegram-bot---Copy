@@ -32,7 +32,9 @@ const handleSponsor = async (callbackQuery, bot) => {
 
     if (response.includes('deny')) {
         const temp = response.split('_')
+        const value = await utils.findUserJSON1(userId, './groupMessageIds.json')
         utils.removeJSON(temp[1],'./data.json')
+        
         bot.editMessageReplyMarkup({
             inline_keyboard: [
                 [
@@ -40,6 +42,7 @@ const handleSponsor = async (callbackQuery, bot) => {
                 ],
             ]
         }, {chat_id: chatId, message_id: msgId})
+        await utils.removeJSON(userId, './groupMessageIds.json')
     }
 
     if(response === `remove_${userId}`) {

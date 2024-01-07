@@ -35,5 +35,7 @@
     "no_pic_msg": "Senza Foto",
     "title_invoice": "Sponsorizzazione da StellarCats",
     "description_invoice": "descrizione",
-    "labeled_price": "Sponsor"
+    "labeled_price": "Sponsor",
+    "stats_sticker": "Questo sticker pack ha oltre 5.4M downloads\n\n",
+    "stats_channel": "Questo canale ha {count} membri"
 }

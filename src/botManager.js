@@ -27,7 +27,7 @@ class BotManager {
         this.setupListeners()
     }
     setupWebhook() {
-        const webhookUrl = `https://38e8-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://872e-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -64,8 +64,9 @@ class BotManager {
         this.bot.on('callback_query', (callbackQuery) => this.handleCallbackQuery(callbackQuery))
         this.bot.on('callback_query', (callbackQuery) => sponsorHandler.handleSponsor(callbackQuery, this.bot))
         this.bot.on('message', (msg) => this.handleMessage(msg))
-        this.bot.on('pre_checkout_query', (pre_checkout_query) => stripeEvents.handlePreCheckoutQuery(pre_checkout_query, this.bot))
-        this.bot.on('successful_payment', (msg) => stripeEvents.handleSuccessfulPayment(msg))
+        //payment stuff
+        //this.bot.on('pre_checkout_query', (pre_checkout_query) => stripeEvents.handlePreCheckoutQuery(pre_checkout_query, this.bot))
+        //this.bot.on('successful_payment', (msg) => stripeEvents.handleSuccessfulPayment(msg))
     }
 
 
@@ -96,7 +97,7 @@ class BotManager {
             //stuff
             const stateManager = this.stateManager[userId]
             stateManager.setUserName(userId, msg.from.first_name)
-            stateManager.setData(userId)
+            stateManager.setData(userId, '', 0)
             stateManager.updateCurrentState('initial')
             //execute
             const botMsgId = await command.execute(this.bot, msg)
@@ -106,21 +107,22 @@ class BotManager {
             
             
         } else {
-            const utente = await utils.findUserJSON1(userId, './accepted.json')
-            if (utente['payed'] === undefined && index2 === 0) {
-                const userPreference = await utils.getUserPreferences(userId)
-                this.bot.sendInvoice(
-                    chatId, 
-                    userPreference.title_invoice, 
-                    userPreference.description_invoice,
-                    'payload', 
-                    process.env.STRIPE_TEST, 
-                    'EUR', 
-                    [
-                        { label: userPreference.labeled_price, amount: 100 }
-                    ]
-                )
-            }
+            // payment stuff
+            // const utente = await utils.findUserJSON1(userId, './accepted.json')
+            // if (utente['payed'] === undefined && index2 === 0) {
+            //     const userPreference = await utils.getUserPreferences(userId)
+            //     this.bot.sendInvoice(
+            //         chatId, 
+            //         userPreference.title_invoice, 
+            //         userPreference.description_invoice,
+            //         'payload', 
+            //         process.env.STRIPE_TEST, 
+            //         'EUR', 
+            //         [
+            //             { label: userPreference.labeled_price, amount: 100 }
+            //         ]
+            //     )
+            // }
             if (index !== false || index2 !== false) {
                 const keyboard = await keyboardOptions.pendingOption(userId, index, index2)
                 const userPreference = await utils.getUserPreferences(userId)
@@ -202,7 +204,7 @@ class BotManager {
             return
             
         }
-        stateManager.setData(userId)
+        // stateManager.setData(userId, this.obj[userId]?.where)
 
         if(!this.obj[userId]) this.obj[userId] = {}
         const currentState = stateManager.getCurrentState() 
@@ -287,9 +289,11 @@ class BotManager {
             //     return
             // }
         }
+        await stateManager.setData(userId, this.obj[userId]?.where, await this.getChatMemberCount())
         console.log('currentState: ', stateManager.getCurrentState())
         const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
         this.bot.editMessageText(stateMod.msg, {
+            parse_mode: 'HTML',
             chat_id: chatId,
             message_id: msgId,
             reply_markup: stateMod.value
@@ -313,7 +317,6 @@ class BotManager {
         const msgId = msg.message_id
         const stateManager = this.stateManager[userId]
         //console.log("Bonassiola sempre pieno di problemi: ", msgText)
-        
         
         if (msg.document) {
             const fileId = msg.document.file_id
@@ -440,7 +443,9 @@ class BotManager {
             })
     }
 
-    
+    async getChatMemberCount() {
+       return await this.bot.getChatMemberCount(-1001437370667)
+    }
 }
 
 module.exports = BotManager

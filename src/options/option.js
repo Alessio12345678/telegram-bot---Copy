@@ -48,7 +48,7 @@ const sponsorOption = async (id) => {
                 { text: userPreference.channel_btn, callback_data: '•channel•' },              
             ],
             [
-                { text: userPreference.emoji_btn, callback_data: '•premium•' },
+                // { text: userPreference.emoji_btn, callback_data: '•premium•' },
                 { text: userPreference.back_btn, callback_data: 'back_initial' }
             ]
         ],
@@ -87,11 +87,12 @@ const nameOption = async (id) => {
 const pendingOption = async (id, index1, index2) => {
     const userPreference = await utils.getUserPreferences(id)
     const user = await utils.findUserJSON1(id, './accepted.json')
-    const payment = {
-        inline_keyboard: [
-            [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
-        ]
-    }
+    //payment stuff
+    // const payment = {
+    //     inline_keyboard: [
+    //         [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
+    //     ]
+    // }
     const activated = {
         inline_keyboard: [
             [{ text: userPreference.activated, callback_data: 'nothing' }],
@@ -112,8 +113,10 @@ const pendingOption = async (id, index1, index2) => {
             [{ text: userPreference.delete_request, callback_data: (index1 !== false) ? `remove_${id}` : `cancel_${id}` }]
         ]
     }
-    if(index2 === 0 && user['payed'] === undefined ) return payment
-    if (index2 === 0 && user['payed']) return activated
+    // with payment
+    // if(index2 === 0 && user['payed'] === undefined ) return payment
+    // if (index2 === 0 && user['payed']) return activated
+    if (index2 === 0) return activated
     if (index2 !== false) return danger
     return warning
 }

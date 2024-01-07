@@ -7,9 +7,20 @@ class StateManager {
         this.data = {}
     }
 
-    async setData(id) {
+    async setData(id, response, count) {
         const userPreference = await utils.getUserPreferences(id)
-        console.log(this.getUserName(id))
+        console.log(response)
+        response = (response !== undefined) ? response.split('•')[1] : ''
+        console.log(response)
+
+        switch (response) {
+            case 'sticker':
+                response = `<b>${userPreference.stats_sticker}</b>`
+                break;
+            case 'channel':
+                response = `<b>${userPreference.stats_channel.replace('{count}', count)}</b>\n\n`
+                break;
+        }
         this.data = {
             'initial': {
                 msg: userPreference.welcome.replace('{firstName}', this.getUserName(id)),
@@ -31,7 +42,7 @@ class StateManager {
                 value: await keyboardOptions.sponsorOption(id)
             },
             'time': {
-                msg: userPreference.time,
+                msg: response + userPreference.time,
                 value: await keyboardOptions.timeOption(id)
             },
             'name': {
