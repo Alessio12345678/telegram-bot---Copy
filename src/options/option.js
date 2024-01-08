@@ -49,6 +49,7 @@ const sponsorOption = async (id) => {
             ],
             [
                 // { text: userPreference.emoji_btn, callback_data: '•premium•' },
+                { text: userPreference.animatedPack_btn, callback_data: '•animated•'},
                 { text: userPreference.back_btn, callback_data: 'back_initial' }
             ]
         ],

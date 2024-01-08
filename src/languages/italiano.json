@@ -27,7 +27,7 @@
     "days_left" : "Giorni rimanenti: ",
     "pic": "Manda l'immagine da sponsorizzare.\nL'immagine deve essere un file in formato PNG o WEBP con uno sfondo trasparente e deve stare in un quadrato di 512x512 (uno dei lati deve essere 512px e l'altro 512px o meno).\n\nLo sticker dovrebbe usare un contorno bianco e un'ombra, esattamente come in questo esempio in .PSD: StickerExample.psd. Ti consiglio di usare Telegram Web/Desktop per caricare le emoji.",
     "no_pic_btn": "Nessuna foto❌",
-    "description": "Scegli una descrizione per il tuo sponsor: ",
+    "description": "Scegli una descrizione per il tuo sponsor.\n\nPer scegliere dove vuoi che il link appaia, scrivi {link} nel punto del testo dove vuoi che appaia. Ad esempio: \n\nLa nostra compagnia, {link}, è leader nel settore tecnologico.\n\nSe il tag {link} non verra messo nel testo, il link verrà messo alla fine del tutto.",
     "confirmation_msg": "Questa e un anteprima del messaggio. Ti sembra buona?",
     "confirmation_btn" : "Si😸",
     "description_msg": "Descrizione: ",
@@ -37,5 +37,10 @@
     "description_invoice": "descrizione",
     "labeled_price": "Sponsor",
     "stats_sticker": "Questo sticker pack ha oltre 5.4M downloads\n\n",
-    "stats_channel": "Questo canale ha {count} membri"
+    "stats_channel": "Questo canale ha {count} membri",
+    "stats_animated" : "Il nostro sticker pack animato ha 102k downloads\n\n",
+    "final_message": "Fatto, la tua richiesta è stata inviata con successo e in attessa di approvazione\n\nPer vedere lo stato della tua richiesta scrivi /start",
+    "animated_instructions": "Inviami l’adesivo animato. Il file dell’immagine dovrebbe essere in formato .TGS, creato utilizzando il plugin Bodymovin-TG per Adobe After Effects\n\nTi consiglio di utilizzare Telegram Desktop quando carichi gli adesivi.",
+    "channel_pic": "Manda una immagine che vuoi che sia inclusa nel messaggio che vuoi usare per sponsorizzarti.\nIn caso non volessi mettere nessuna immagine, premi il pulsante Nessna foto❌"
+
 }

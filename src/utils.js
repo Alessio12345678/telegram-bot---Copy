@@ -121,7 +121,7 @@ const removeJSON = async (userId, name) => {
 const estimateWait = async (index2) => {
     const json = await readJSON('./accepted.json')
     let sum = []
-    console.log(json.length)
+    //console.log(json.length)
     for (let i = 0; i < json.length; i++) 
         if (i !== index2)
             sum.push(json[i]['duration'])
@@ -186,6 +186,34 @@ const acceptedUpdater = async () => {
     //oppure a dateChecker si passa endDate, e fa il controllo, e finchè non sono uguali non fa nulla
 }
 
+const sendToChannel = async () => {
+    const json = await readJSON('./accepted.json')
+    if (json.length === 0 || json[0]['where'] != 'channel') return
+
+    const msgWithLink = json[0]["description"].replaceAll('{link}', `<a href='${json[0]['url']}'>${json[0]['url']}</a>`)
+    const msgLinkTemp = + (json[0]['description'].includes('{link}')) ? '' : `${json[0]['url']}`
+
+    const actualTimeStamp = new Date()
+    const [hours, minutes, seconds] = '11:00:00'.split(':')
+    const timeStampToConfront = new Date(actualTimeStamp.getFullYear(), actualTimeStamp.getMonth(), actualTimeStamp.getDate(), hours, minutes, seconds)
+    if(Math.floor(actualTimeStamp.getTime()/1000)  === Math.floor(timeStampToConfront.getTime()/1000)){
+        if(json[0]['imageUrl']) {
+            const response = await axios.get(json[0]['imageUrl'], { responseType: 'arraybuffer' });
+            const fileBuffer = Buffer.from(response.data, 'binary');
+            setBot().sendPhoto(-1001914875067, fileBuffer, {
+                parse_mode: 'HTML',
+                caption: `\n\n${msgWithLink}` + msgLinkTemp
+            })
+        }else {
+            setBot().sendMessage(-1001914875067, `<b>${msgWithLink}</b>` `\n\n<a href = '${msgLinkTemp}'>${msgLinkTemp}</a>`, {
+                parse_mode: 'HTML'
+            })
+        }
+
+    }
+}
+
+setInterval(sendToChannel, 1000)
 setInterval(acceptedUpdater, 1000)
 
 
@@ -212,7 +240,6 @@ const checkImg = async (imageUrl) => {
         const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
         const dimensions = imageSize(response.data);
         const { width, height, type } = dimensions;
-        console.log("dimensions: ", dimensions);
         return (((width <= 512 && height === 512) || (width === 512 && height <= 512)) && (type === 'png' || type === 'webp'));
     } catch (error) {
         console.error(error)
@@ -220,8 +247,31 @@ const checkImg = async (imageUrl) => {
     
 }
 
+const checkTgs = async (imageUrl) => {
+    try {
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const dimensions = imageSize(response.data);
+        const {type } = dimensions;
+        return (type === 'tgs');
+    } catch (error) {
+        console.error(error)
+    }
+    
+}
+
+const checkChannelImage = async (imageUrl) => {
+    try {
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const dimensions = imageSize(response.data);
+        const {type } = dimensions;
+        return (type === 'png' || type === 'jpeg' || type === 'jpg' || type === 'gif' || type === 'webp' || type === 'mp4');
+    } catch (error) {
+        console.error(error)
+    }
+}
+
 const setBot = () => {
     const { botManager } = require('./index.js')
     return botManager.bot
 }
-module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait, remainingDays, checkImg }
+module.exports = { isValidURL, readJSON, writeJSON, findUserJSON, updateJSON, loadLanguageStrings, getUserPreferences, findUserJSON1, findIndexDataJson, removeJSON, estimateWait, remainingDays, checkImg, checkTgs, checkChannelImage}

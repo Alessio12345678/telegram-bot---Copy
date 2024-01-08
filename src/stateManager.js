@@ -7,15 +7,18 @@ class StateManager {
         this.data = {}
     }
 
-    async setData(id, response, count) {
+    async setData(id, response, count, obj) {
         const userPreference = await utils.getUserPreferences(id)
-        console.log(response)
+        //console.log(response)
         response = (response !== undefined) ? response.split('•')[1] : ''
-        console.log(response)
-
+        //console.log(response)
+        
         switch (response) {
             case 'sticker':
                 response = `<b>${userPreference.stats_sticker}</b>`
+                break;
+            case 'animated':
+                response = `<b>${userPreference.stats_animated}</b>`
                 break;
             case 'channel':
                 response = `<b>${userPreference.stats_channel.replace('{count}', count)}</b>\n\n`
@@ -50,7 +53,7 @@ class StateManager {
                 value: await keyboardOptions.nameOption(id)
             },
             'pic': {
-                msg: userPreference.pic,
+                msg: (obj['where'] === '•sticker•') ? userPreference.pic : (obj['where'] === '•animated•') ? userPreference.animated_instructions : (obj['where'] === '•channel•') ? userPreference.channel_pic : '',
                 value: await keyboardOptions.picOption(id)
             },
             'description': {
@@ -58,7 +61,7 @@ class StateManager {
                 value: await keyboardOptions.descriptionOption(id)
             },
             'confirmation': {
-                msg: 'done',
+                msg: userPreference.final_message,
                 value: null
             }
         }
