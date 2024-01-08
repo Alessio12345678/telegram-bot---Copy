@@ -54,7 +54,7 @@ class StateManager {
             },
             'pic': {
                 msg: (obj['where'] === '•sticker•') ? userPreference.pic : (obj['where'] === '•animated•') ? userPreference.animated_instructions : (obj['where'] === '•channel•') ? userPreference.channel_pic : '',
-                value: await keyboardOptions.picOption(id)
+                value: await keyboardOptions.picOption(id, obj)
             },
             'description': {
                 msg: userPreference.description,

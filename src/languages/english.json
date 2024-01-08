@@ -26,7 +26,7 @@
     "activated" : "Activated ✅",
     "days_left": "Days left: ",
     "pic": "Send me the image to sponsor.The image file should be in PNG or WEBP format with a transparent layer and must fit into a 512x512 square (one of the sides must be 512px and the other 512px or less).\n\nThe sticker should use white stroke and shadow, exactly like in this .PSD example: StickerExample.psd. I recommend using Telegram for Web/Desktop when uploading stickers.",
-    "no_pic_btn": "No picture ❌",
+    "no_pic_btn": "No file ❌",
     "description": "Choose a description for your sponsor.\n\nTo choose where you want the link to appear, write {link} at the point in the text where you want it to appear. For example: \n\nOur company, {link}, is a leader in the technology sector.\n\nIf the {link} tag is not placed in the text, the link will be placed at the very end.",
     "confirmation_msg": "This is a preview of the message to sponsor. Does this look good?",
     "confirmation_btn" : "Yes😸",
@@ -39,7 +39,7 @@
     "stats_sticker": "Our sticker pack has over 5.4M downloads\n\n",
     "stats_channel": "Our channel has {count} members",
     "stats_animated" : "Our animated sticker pack has over 102k downloads\n\n",
-    "final_message": "Done, your request has successfully been sent and waiting for approval\n\nTo see the status of your request type /start",
+    "final_message": "Done, your request has successfully been sent and waiting for approval\n\nTo see the status of your request type\n/start",
     "animated_instructions": "Send me the animated sticker. The image file should be in .TGS format, created using the Bodymovin-TG plugin for Adobe After Effects.\n\nI recommend using Telegram Desktop when uploading stickers.",
-    "channel_pic" : "Send an image that is included in the message you want to use for your promotion.\nIf you don’t want to put any image, press the No photo❌ button."
+    "channel_pic" : "Send a <b>file</b> that is going to be included in the message you want to use for your promotion.\n\n<b>Only .png, .jpeg, .jpg, .webp, .gif, .mp4 are allowed!</b>\n\nIf you don’t want to put a file,\nhit the <b>No file</b>❌ button."
 }

@@ -122,12 +122,21 @@ const pendingOption = async (id, index1, index2) => {
     return warning
 }
 
-const picOption = async (id) => {
+const picOption = async (id, obj) => {
     const userPreference = await utils.getUserPreferences(id)
+    if (obj['where'] === '•channel•') {
+        return {
+            inline_keyboard: [
+                [
+                    { text: userPreference.no_pic_btn, callback_data: "no_pic"},
+                    { text: userPreference.back_btn, callback_data: "back_time"},
+                ]
+            ]
+        }
+    }
     return {
         inline_keyboard: [
             [
-                { text: userPreference.no_pic_btn, callback_data: "no_pic"},
                 { text: userPreference.back_btn, callback_data: "back_time"},
             ]
         ]
@@ -154,5 +163,7 @@ const previewConfirmationOption = async (id) => {
         ]
     }
 }
+
+
 
 module.exports = { initialOption, timeOption, nameOption, ourThings, sponsorOption, pendingOption, picOption, descriptionOption, previewConfirmationOption };

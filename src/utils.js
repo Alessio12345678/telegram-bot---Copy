@@ -2,9 +2,7 @@ const fs = require('fs').promises
 const validator =  require('validator')
 const moment = require('moment')
 const imageSize = require('image-size')
-const axios = require('axios');
-
-
+const axios = require('axios')
 
 const isValidURL = url => {
     return validator.isURL(url)
@@ -237,22 +235,22 @@ const convertDays = async (duration) => {
 
 const checkImg = async (imageUrl) => {
     try {
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const dimensions = imageSize(response.data);
-        const { width, height, type } = dimensions;
-        return (((width <= 512 && height === 512) || (width === 512 && height <= 512)) && (type === 'png' || type === 'webp'));
+        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' })
+        const dimensions = imageSize(response.data)
+        const { width, height, type } = dimensions
+        console.log('checkImg: ', type)
+        return (((width <= 512 && height === 512) || (width === 512 && height <= 512)) && (type === 'png' || type === 'webp'))
     } catch (error) {
         console.error(error)
+        console.log('you got the wrong house fool')
     }
     
 }
 
 const checkTgs = async (imageUrl) => {
     try {
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const dimensions = imageSize(response.data);
-        const {type } = dimensions;
-        return (type === 'tgs');
+        const type = imageUrl.split('.').pop()
+        return (type === 'tgs')
     } catch (error) {
         console.error(error)
     }
@@ -261,10 +259,8 @@ const checkTgs = async (imageUrl) => {
 
 const checkChannelImage = async (imageUrl) => {
     try {
-        const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const dimensions = imageSize(response.data);
-        const {type } = dimensions;
-        return (type === 'png' || type === 'jpeg' || type === 'jpg' || type === 'gif' || type === 'webp' || type === 'mp4');
+        const type = imageUrl.split('.').pop()
+        return (type === 'png' || type === 'jpeg' || type === 'jpg' || type === 'gif' || type === 'webp' || type === 'mp4')
     } catch (error) {
         console.error(error)
     }
