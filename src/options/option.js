@@ -152,7 +152,7 @@ const descriptionOption = async (id) => {
     }
 }
 
-const previewConfirmationOption = async (id) => {
+const previewConfirmationOption = async (id, obj) => {
     const userPreference = await utils.getUserPreferences(id)
     return {
         inline_keyboard: [

@@ -27,7 +27,7 @@ class BotManager {
         
     }
     setupWebhook() {
-        const webhookUrl = `https://d7c5-79-30-90-145.ngrok-free.app${this.webhookPath}${this.bot.token}`
+        const webhookUrl = `https://a094-2001-b07-6463-6f86-9061-378f-2bf3-2edd.ngrok-free.app${this.webhookPath}${this.bot.token}`
         this.bot.setWebHook(webhookUrl)
 
         this.app = express()
@@ -154,14 +154,10 @@ class BotManager {
         if (response === 'yes') {
             let groupMessage
             if (this.obj[userId].hasOwnProperty('imageUrl')) {
-                const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
-                const fileBuffer = Buffer.from(response.data, 'binary')
-                const desp = (this.obj[userId]['where'] === '•channel•') ? `Descrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n` : ''
-                if (this.obj[userId]['where'] !== '•channel•') await this.bot.sendDocument(-1001914875067, fileBuffer)
-                if (this.obj[userId]['imageUrl'].includes('mp4') || this.obj[userId]['imageUrl'].includes('gif')){
-                    groupMessage = await this.bot.sendVideo(-1001914875067, fileBuffer, {
+                if (this.obj[userId]['where'] === '•animated•') {
+                    await this.bot.sendDocument(-1001914875067, this.obj[userId]['imageUrl'])
+                    groupMessage = await this.bot.sendMessage(-1001914875067, `<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`, {
                         parse_mode: 'HTML',
-                        caption: `${desp}<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
                         reply_markup: {
                             inline_keyboard: [
                                 [
@@ -172,21 +168,42 @@ class BotManager {
                             ]
                         }
                     });
-                } else 
-                groupMessage = await this.bot.sendPhoto(-1001914875067, fileBuffer, {
-                                    parse_mode: 'HTML',
-                                    caption: `${desp}<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
-                                    reply_markup: {
-                                        inline_keyboard: [
-                                            [
-                                                { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
-                                                { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
-                                            ],
-                                            
-                                        ]
-                                    }
-                                });
-            
+                } else {
+                    const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
+                    const fileBuffer = Buffer.from(response.data, 'binary')
+                    const desp = (this.obj[userId]['where'] === '•channel•') ? `Descrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n` : ''
+                    if (this.obj[userId]['where'] !== '•channel•') await this.bot.sendDocument(-1001914875067, fileBuffer)
+                    
+                    if (this.obj[userId]['imageUrl'].includes('mp4') || this.obj[userId]['imageUrl'].includes('gif')){
+                        groupMessage = await this.bot.sendVideo(-1001914875067, fileBuffer, {
+                            parse_mode: 'HTML',
+                            caption: `${desp}<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+                                        { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+                                    ],
+                                    
+                                ]
+                            }
+                        });
+                    } else {
+                        groupMessage = await this.bot.sendPhoto(-1001914875067, fileBuffer, {
+                                            parse_mode: 'HTML',
+                                            caption: `${desp}<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`,
+                                            reply_markup: {
+                                                inline_keyboard: [
+                                                    [
+                                                        { text: 'Accetta ✅', callback_data: `confirm_${userId}` },
+                                                        { text: 'Rifiuta ❌', callback_data: `deny_${userId}` }
+                                                    ],
+                                                    
+                                                ]
+                                            }
+                                        });
+                        }
+                }
             } else {
                 groupMessage = await this.bot.sendMessage(-1001914875067, `<b>Senza foto</b>\nDescrizione: ${this.obj[userId]['description']}\nUrl/Channel: ${this.obj[userId]['url']}\n\n<b>Informazioni Utente:</b>\nUtente: ${this.obj[userId]['userName']}\nDove: ${this.obj[userId]['where'].replace(/•/g, '')}\nDurata: ${this.obj[userId]['duration']}`, {
                     parse_mode: 'HTML',
@@ -277,8 +294,10 @@ class BotManager {
             // this.obj[userId]['end_Date'] =  date2.toISOString().split('T')[0]
             stateManager.updateCurrentState("pic")
         } else if (currentState === 'pic') {
-            if (response === 'no_pic') 
+            if (response === 'no_pic') {
+                delete this.obj[userId]['imageUrl']
                 stateManager.updateCurrentState("description")
+            }
             
         } else if (currentState === 'confirmation') {
             //console.log('daje')
@@ -349,36 +368,7 @@ class BotManager {
                 })
                 this.obj[userId]['imageUrl'] = imageUrl
             }
-            else if(await utils.checkTgs(imageUrl) && this.obj[userId]['where'] === '•animated•') {
-                const userPreference = await utils.getUserPreferences(userId)
-                
-                this.bot.deleteMessage(chatId, this.buccilli[userId])
-                this.obj[userId]['imageUrl'] = imageUrl
-                const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
-                const fileBuffer = Buffer.from(response.data, 'binary');
-                const stolen = await this.bot.sendPhoto(chatId, fileBuffer, {
-                    parse_mode: 'HTML',
-                    caption: `<b>${userPreference.confirmation_msg}</b>`,
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                { text: userPreference.confirmation_btn, callback_data: 'yes' },
-                                { text: userPreference.back_btn, callback_data: 'back_name' }
-                            ]
-                        ]
-                    }
-                })
-                this.buccilli[userId] = stolen.message_id
-                stateManager.updateCurrentState('confirmation')
-                // const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
-                // this.bot.editMessageText(stateMod.msg, {
-                //     chat_id: chatId,
-                //     message_id: this.buccilli[userId],
-                //     reply_markup: stateMod.value
-                // })
-                
-
-            } else if (await utils.checkImg(imageUrl) && this.obj[userId]['where'] === '•sticker•') {
+            else if (await utils.checkImg(imageUrl) && this.obj[userId]['where'] === '•sticker•') {
                 //console.log('it is a valid image')
                 const userPreference = await utils.getUserPreferences(userId)
                 this.bot.deleteMessage(chatId, this.buccilli[userId])
@@ -386,13 +376,13 @@ class BotManager {
                 const response = await axios.get(this.obj[userId]['imageUrl'], { responseType: 'arraybuffer' });
                 const fileBuffer = Buffer.from(response.data, 'binary');
                 const stolen = await this.bot.sendPhoto(chatId, fileBuffer, {
-                    parse_mode: 'HTML',
-                    caption: `<b>${userPreference.confirmation_msg}</b>`,
+                    
+                    
                     reply_markup: {
                         inline_keyboard: [
                             [
                                 { text: userPreference.confirmation_btn, callback_data: 'yes' },
-                                { text: userPreference.back_btn, callback_data: 'back_name' }
+                                { text: userPreference.back_btn, callback_data: 'back_pic' }
                             ]
                         ]
                     }
@@ -410,6 +400,42 @@ class BotManager {
                 // this.bot.sendPhoto(chatId, fileBuffer)
             }
             this.bot.deleteMessage(chatId, msgId)
+        }
+        else if (msg.sticker) {
+            console.log('ce qualcosa che fa rumore')
+            const fileId = msg.sticker.file_id
+            const file = await this.bot.getFile(fileId)
+            const imageUrl = `https://api.telegram.org/file/bot${this.bot.token}/${file.file_path}`
+            console.log(imageUrl)
+
+            if(await utils.checkTgs(imageUrl) && this.obj[userId]['where'] === '•animated•') {
+                const userPreference = await utils.getUserPreferences(userId)
+                
+                this.bot.deleteMessage(chatId, this.buccilli[userId])
+                this.obj[userId]['imageUrl'] = fileId
+                const stolen = await this.bot.sendSticker(chatId, fileId, {
+                    
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: userPreference.confirmation_btn, callback_data: 'yes' },
+                                { text: userPreference.back_btn, callback_data: 'back_pic' }
+                            ]
+                        ]
+                    }
+                })
+                this.buccilli[userId] = stolen.message_id
+                stateManager.updateCurrentState('confirmation')
+                // const stateMod = stateManager.getStateByName(stateManager.getCurrentState())
+                // this.bot.editMessageText(stateMod.msg, {
+                //     chat_id: chatId,
+                //     message_id: this.buccilli[userId],
+                //     reply_markup: stateMod.value
+                // })
+                
+                this.bot.deleteMessage(chatId, msgId)
+            }
+            
         }
         else if (!msg.text && !msg.sticker) 
            this.bot.deleteMessage(chatId, msgId)
